@@ -1,0 +1,50 @@
+/*
+ * Yireo Library for Joomla!
+ *
+ * @author Yireo (info@yireo.com)
+ * @package Yireo
+ * @copyright Copyright 2014
+ * @link http://www.yireo.com
+ */
+
+fieldset.adminform {
+    border: 1px solid #dfdfdf !important;
+    background-color: #f1f1f1;
+}
+
+fieldset.adminform td.key {
+    background-color: #dfdfdf;
+    padding: 5px;
+    line-height: 16px;
+    text-align: right;
+}
+
+fieldset.adminform td.value label {
+    float: left;
+    clear: none;
+    min-width: 15px;
+    width: auto;
+    padding-left: 5px;
+    padding-right: 15px;
+    padding-top: 0px;
+    line-height: 16px;
+    display: inline;
+}
+
+fieldset.adminform td.value select {
+    clear: both;
+}
+
+fieldset.adminform td.value {
+    width: 400px !important;
+}
+
+fieldset.adminform span.input-span {
+    line-height: 250%;
+    font-size: 80%;
+    float:left;
+}
+
+dd.notice pre {
+    white-space: pre-line;
+}

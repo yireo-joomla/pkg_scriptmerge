@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="2.5" type="plugin" group="system" method="upgrade">
+    <name>PLG_SYSTEM_SCRIPTMERGE</name>
+    <author>Yireo</author>
+    <creationDate>March 2014</creationDate>
+    <copyright>Copyright (C) 2014 Yireo.com. All rights reserved.</copyright>
+    <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
+    <authorEmail>info@yireo.com</authorEmail>
+    <authorUrl>www.yireo.com</authorUrl>
+    <version>0.9.19</version>
+    <description>PLG_SYSTEM_SCRIPTMERGE_DESC</description>
+
+    <files>
+        <filename plugin="scriptmerge">scriptmerge.php</filename>
+        <filename>index.html</filename>
+    </files>
+
+    <languages>
+        <language tag="en-GB">en-GB.plg_system_scriptmerge.ini</language>
+        <language tag="en-GB">en-GB.plg_system_scriptmerge.sys.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params">
+            <fieldset name="merge" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_MERGE">
+                <field name="merge_type" type="list" default="md5sum" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_MERGE_TYPE" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_MERGE_TYPE_DESC">
+                    <option value="md5sum">Checksum (cache-file)</option>
+                    <option value="files">Filelist (dynamic)</option>
+                </field>
+                <field name="enable_css" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_CSS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="enable_js" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_JS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_JS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+            </fieldset>
+            <fieldset name="compress" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_COMPRESS" addfieldpath="/administrator/components/com_scriptmerge/fields">
+                <field name="compress_css" type="list" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS_OPTION_SIMPLE</option>
+                    <option value="2">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS_OPTION_CSSMIN</option>
+                </field>
+                <field name="compress_js" type="list" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_DESC">
+                    <option value="">JNO</option>
+                    <option value="simple">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_SIMPLE</option>
+                    <option value="jsminplus">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_JSMINPLUS</option>
+                    <option value="closurecompiler">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_CLOSURECOMPILER</option>
+                    <option value="phpjsmin">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_PHPJSMIN</option>
+                    <option value="javascriptpacker">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_JAVASCRIPTPACKER</option>
+                </field>
+                <field name="skip_compressed" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_SKIP_COMPRESSED" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_SKIP_COMPRESSED_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+            </fieldset>
+            <fieldset name="exclude" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_EXCLUDE" addfieldpath="/administrator/components/com_scriptmerge/fields">
+                <field name="exclude_css" type="textarea" rows="5" cols="50" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_CSS_DESC" />
+                <field name="exclude_js" type="textarea" rows="5" cols="50" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_JS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_JS_DESC" />
+                <field name="exclude_menuitems" type="menuitem" multiple="multiple" size="10" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_MENUITEMS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_MENUITEMS_DESC" />
+                <field name="exclude_components" type="components" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_COMPONENTS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_COMPONENTS_DESC" />
+            </fieldset>
+            <fieldset name="advanced" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_ADVANCED">
+                <field name="frontend" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_FRONTEND" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_FRONTEND_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="backend" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_BACKEND" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_BACKEND_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="use_comments" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_COMMENTS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_COMMENTS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="compress_html" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_HTML" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_HTML_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="image_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_IMAGE_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_IMAGE_DOMAIN_DESC" />
+                <field name="js_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_DOMAIN_DESC" />
+                <field name="css_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_DOMAIN_DESC" />
+                <field name="expiration" type="text" default="30" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXPIRATION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXPIRATION_DESC" />
+                <field name="version" type="text" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_VERSION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_VERSION_DESC" />
+                <field name="follow_imports" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_FOLLOW_IMPORTS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_FOLLOW_IMPORTS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="data_uris" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="data_uris_filesize" type="text" default="2000" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_FILESIZE" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_FILESIZE_DESC" />
+                <field name="use_webp" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_WEBP" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_WEBP_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="cwebp" type="text" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_CWEBP" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_CWEBP_DESC" />
+                <field name="use_jsmin" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_JSMIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_JSMIN_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="jsmin" type="text" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_JSMIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_JSMIN_DESC" />
+                <field name="async_merged" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ASYNC_MERGED" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ASYNC_MERGED_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="js_position" type="list" default="first_tag" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_POSITION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_POSITION_DESC">
+                    <option value="first_tag">PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_POSITION_OPTION_FIRST_TAG</option>
+                    <option value="body_end">PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_POSITION_OPTION_BODY_END</option>
+                    <option value="head_end">PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_POSITION_OPTION_HEAD_END</option>
+                </field>
+                <field name="css_position" type="list" default="first_tag" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_POSITION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_POSITION_DESC">
+                    <option value="first_tag">PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_POSITION_OPTION_FIRST_TAG</option>
+                    <option value="body_end">PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_POSITION_OPTION_BODY_END</option>
+                    <option value="head_end">PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_POSITION_OPTION_HEAD_END</option>
+                </field>
+                <field name="force_gzip" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_FORCE_GZIP" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_FORCE_GZIP_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
+
+    <updateservers>
+        <server type="extension" priority="1" name="plg_system_scriptmerge">http://www.yireo.com/updates/plg_system_scriptmerge.xml</server>
+    </updateservers>
+</extension>

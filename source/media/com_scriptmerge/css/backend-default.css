@@ -1,0 +1,40 @@
+/**
+ * Joomla! component ScriptMerge
+ *
+ * @author Yireo
+ * @package ScriptMerge
+ * @copyright Copyright 2013
+ * @link http://www.yireo.com/
+ */
+
+.icon-48-logo {
+    background-image: url(../images/logo.png);
+}
+
+fieldset.adminform {
+    border: 1px solid #dfdfdf !important;
+    background-color: #f1f1f1;
+}
+
+fieldset.adminform td.key {
+    background-color: #dfdfdf;
+    padding: 5px;
+    line-height: 16px;
+    text-align: right;
+}
+
+fieldset.adminform td.value label {
+    float: left;
+    clear: none;
+    min-width: 15px;
+    width: auto;
+    padding-left: 5px;
+    padding-right: 15px;
+    padding-top: 0px;
+    line-height: 16px;
+    display: inline;
+}
+
+fieldset.adminform td.value select {
+    clear: both;
+}

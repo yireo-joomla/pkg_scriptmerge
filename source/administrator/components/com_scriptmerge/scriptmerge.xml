@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" version="2.5" method="upgrade">
+    <name>COM_SCRIPTMERGE</name>
+    <author>Yireo</author>
+    <authoremail>support@yireo.com</authoremail>
+    <authorurl>http://www.yireo.com</authorurl>
+    <creationDate>March 2014</creationDate>
+    <copyright>Copyright 2014 Yireo.com</copyright>
+    <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+    <version>0.9.19</version>
+    <description>COM_SCRIPTMERGE_DESC</description>
+
+    <files folder="site">
+        <folder>helpers</folder>
+        <folder>lib</folder>
+        <filename>index.html</filename>
+        <filename>scriptmerge.php</filename>
+    </files>
+
+    <administration>
+
+        <!--<menu img="../media/com_scriptmerge/images/menu-scriptmerge.png">COM_SCRIPTMERGE</menu>-->
+
+        <files folder="admin">
+            <filename>controller.php</filename>
+            <filename>index.html</filename>
+            <filename>scriptmerge.php</filename>
+            <filename>scriptmerge.manifest.php</filename>
+            <folder>views</folder>
+            <folder>lib</folder>
+            <folder>helpers</folder>
+            <folder>fields</folder>
+        </files>
+
+        <languages folder="admin/language">
+            <language tag="en-GB">en-GB.com_scriptmerge.ini</language>
+            <language tag="en-GB">en-GB.com_scriptmerge.sys.ini</language>
+            <language tag="en-GB">en-GB.lib_yireo.ini</language>
+        </languages>
+    </administration>
+
+    <media folder="media" destination="com_scriptmerge">
+        <folder>css</folder>
+        <folder>js</folder>
+        <folder>images</folder>
+        <filename>index.html</filename>
+    </media>
+
+    <scriptfile>scriptmerge.manifest.php</scriptfile>
+
+    <updateservers>
+        <server type="extension" priority="1" name="com_scriptmerge">http://www.yireo.com/updates/com_scriptmerge.xml</server>
+    </updateservers>
+</extension>
