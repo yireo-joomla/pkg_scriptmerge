@@ -241,9 +241,12 @@ class ScriptMergeHelper
                     $importBuffer = ScriptMergeHelper::getCssContent($importFile);
 
                     if (!empty($importBuffer)) {
-                        $buffer = str_replace($matches[0][$index], "\n".$importBuffer."\n", $buffer);
+                        if(ScriptMergeHelper::getParams()->get('use_comments', 1)) {
+                            $buffer .= "\n/* ScriptMerge CSS import of $importFile */\n\n".$buffer;
+                        }
+                        $buffer .= str_replace($matches[0][$index], "\n".$importBuffer."\n", $buffer);
                     } else {
-                        $buffer = "\n/* ScriptMerge error: CSS import of $importFile returned empty */\n\n".$buffer;
+                        $buffer .= "\n/* ScriptMerge error: CSS import of $importFile returned empty */\n\n".$buffer;
                     }
                 }
             }
