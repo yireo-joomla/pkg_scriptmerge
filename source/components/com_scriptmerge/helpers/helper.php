@@ -218,13 +218,9 @@ class ScriptMergeHelper
         $basefile = ScriptMergeHelper::getFileUrl($file, false);
 
         // Follow all @import rules
-        $imports = array();
         if (ScriptMergeHelper::getParams()->get('follow_imports', 1) == 1) {
             if (preg_match_all('/@import\ (.*);/i', $rawBuffer, $matches)) {
                 foreach ($matches[1] as $index => $match) {
-
-                    // Add the import to the list
-                    $imports[] = $matches[0][$index];
 
                     // Strip quotes
                     $match = str_replace('url(', '', $match);
