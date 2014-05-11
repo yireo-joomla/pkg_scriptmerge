@@ -293,6 +293,7 @@ class ScriptMergeHelper
         $regexp = '/@import[^;]+;/i';
         if (preg_match_all($regexp, $rawBuffer, $matches)) {
             $buffer = preg_replace($regexp, '', $buffer);
+            $matches[0] = array_unique($matches[0]);
             $buffer = implode("\n", $matches[0])."\n".$buffer;
         }
 
