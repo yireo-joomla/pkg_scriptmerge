@@ -188,6 +188,13 @@ class ScriptMergeHelper
      */
     static public function getCssContent($file)
     {
+        // Only inlude a file once
+        static $parsed_files = array();
+        if(in_array($file, $parsed_files)) {
+            return " ";
+        }
+        $parsed_files[] = $file;
+
         // Don't try to parse empty (or non-existing) files
         if (empty($file)) return null;
         if (@is_readable($file) == false) return null;
