@@ -135,8 +135,8 @@ class ScriptMergeHelper
 
             // Append the filename to the JS-code
             if(ScriptMergeHelper::getParams()->get('use_comments', 1)) {
-                $start = "/* [start] ScriptMerge JavaScript file: $basefile */\n\n";
-                $end = "/* [end] ScriptMerge JavaScript file: $basefile */\n\n";
+                $start = "/* [scriptmerge/start] JavaScript file: $basefile */\n\n";
+                $end = "/* [scriptmerge/end] JavaScript file: $basefile */\n\n";
                 $buffer = $start.$buffer."\n".$end;
             } else {
                 $buffer .= "\n";
@@ -154,8 +154,8 @@ class ScriptMergeHelper
 
             // Append the filename to the JS-code
             if(ScriptMergeHelper::getParams()->get('use_comments', 1)) {
-                $start = "/* [start] ScriptMerge uncompressed JavaScript file: $basefile */\n\n";
-                $end = "/* [end] ScriptMerge uncompressed JavaScript file: $basefile */\n\n";
+                $start = "/* [scriptmerge/start] Uncompressed JavaScript file: $basefile */\n\n";
+                $end = "/* [scriptmerge/end] Uncompressed JavaScript file: $basefile */\n\n";
                 $buffer = $start.$buffer."\n".$end;
             }
         }
@@ -238,11 +238,12 @@ class ScriptMergeHelper
 
                     if (!empty($importBuffer)) {
                         if(ScriptMergeHelper::getParams()->get('use_comments', 1)) {
-                            $buffer .= "\n/* ScriptMerge CSS import of $importFile */\n\n".$buffer;
+                            $buffer .= "\n/* [scriptmerge/notice] CSS import of $importFile */\n\n".$buffer;
                         }
-                        $buffer .= str_replace($matches[0][$index], "\n".$importBuffer."\n", $buffer);
+                        $buffer .= "\n".$importBuffer."\n";
+                        $buffer = str_replace($matches[0][$index], "\n", $buffer);
                     } else {
-                        $buffer .= "\n/* ScriptMerge error: CSS import of $importFile returned empty */\n\n".$buffer;
+                        $buffer .= "\n/* [scriptmerge/error] CSS import of $importFile returned empty */\n\n".$buffer;
                     }
                 }
             }
@@ -331,8 +332,8 @@ class ScriptMergeHelper
 
             // Append the filename to the CSS-code
             if(ScriptMergeHelper::getParams()->get('use_comments', 1)) {
-                $start = "/* [start] ScriptMerge CSS-stylesheet: $basefile */\n\n";
-                $end = "/* [end] ScriptMerge CSS-stylesheet: $basefile */\n\n";
+                $start = "/* [scriptmerge/start] CSS-stylesheet: $basefile */\n\n";
+                $end = "/* [scriptmerge/end] CSS-stylesheet: $basefile */\n\n";
                 $buffer = $start.$buffer."\n".$end;
             }
         }
