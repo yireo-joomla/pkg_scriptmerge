@@ -225,6 +225,7 @@ class ScriptMergeHelper
         $basefile = ScriptMergeHelper::getFileUrl($file, false);
 
         // Follow all @import rules
+        $imports = array();
         if (ScriptMergeHelper::getParams()->get('follow_imports', 1) == 1) {
             if (preg_match_all('/@import\ (.*);/i', $rawBuffer, $matches)) {
                 foreach ($matches[1] as $index => $match) {
@@ -242,15 +243,18 @@ class ScriptMergeHelper
                     $importFile = ScriptMergeHelper::getFilePath($match, $file);
                     if (empty($importFile) && strstr($importFile, '/') == false) $importFile = dirname($file).'/'.$match;
                     $importBuffer = ScriptMergeHelper::getCssContent($importFile);
+                    $importUrl = ScriptMergeHelper::getFileUrl($importFile, false);
 
                     if (!empty($importBuffer)) {
                         if(ScriptMergeHelper::getParams()->get('use_comments', 1)) {
-                            $buffer .= "\n/* [scriptmerge/notice] CSS import of $importFile */\n\n".$buffer;
+                            $buffer .= "\n/* [scriptmerge/notice] CSS import of $importUrl */\n\n".$buffer;
                         }
                         $buffer .= "\n".$importBuffer."\n";
                         $buffer = str_replace($matches[0][$index], "\n", $buffer);
+                        $imports[] = $matches[1][$index];
+
                     } else {
-                        $buffer .= "\n/* [scriptmerge/error] CSS import of $importFile returned empty */\n\n".$buffer;
+                        $buffer .= "\n/* [scriptmerge/error] CSS import of $importUrl returned empty */\n\n".$buffer;
                     }
                 }
             }
@@ -298,10 +302,15 @@ class ScriptMergeHelper
         }
 
         // Move all @import-lines to the top of the CSS-file
-        $regexp = '/@import[^;]+;/i';
+        $regexp = '/@import (.*);/i';
         if (preg_match_all($regexp, $rawBuffer, $matches)) {
             $buffer = preg_replace($regexp, '', $buffer);
             $matches[0] = array_unique($matches[0]);
+            foreach($matches[0] as $index => $match) {
+                if(in_array($matches[1][$index], $imports)) {
+                    unset($matches[0][$index]);
+                }
+            }
             $buffer = implode("\n", $matches[0])."\n".$buffer;
         }
 
