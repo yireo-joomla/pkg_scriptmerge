@@ -27,7 +27,14 @@ class plgSystemScriptMerge extends JPlugin
      */
     public function onAfterRoute()
     {
+        // Don't do anything for non scriptmerge pages
         if(JRequest::getCmd('option') != 'com_scriptmerge') {
+            return false;
+        }
+
+        // Check for frontend
+        $app = JFactory::getApplication();
+        if($app->isSite() == false) {
             return false;
         }
 
@@ -45,10 +52,10 @@ class plgSystemScriptMerge extends JPlugin
 
         // Read the files parameter
         $files = JRequest::getString('files');
+        $buffer = null;
         if (!empty($files)) {
 
             $files = $helper->decodeList($files);
-            $buffer = null;
             foreach ($files as $file) {
                 if ($type == 'css') {
                     if (!preg_match('/\.css$/', $file)) continue;
