@@ -598,6 +598,9 @@ class ScriptMergeHelper
         // If this begins with a data URI, skip it
         if (preg_match('/^data\:/', $file)) return null;
 
+        // Strip any URL parameter from this
+        $file = preg_replace('/\?(.*)/', '', $file);
+
         // If this is already a correct path, return it
         if (@is_file($file) && @is_readable($file)) {
             return ScriptMergeHelper::realpath($file);
