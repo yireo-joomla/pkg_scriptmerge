@@ -7,7 +7,7 @@
     <creationDate>March 2014</creationDate>
     <copyright>Copyright 2014 Yireo.com</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>0.9.19</version>
+    <version>0.9.20</version>
     <description>COM_SCRIPTMERGE_DESC</description>
 
     <files folder="site">
