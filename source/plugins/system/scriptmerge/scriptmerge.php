@@ -406,6 +406,12 @@ class plgSystemScriptMerge extends JPlugin
             }
         }
 
+        if(JURI::getInstance()->isSSL()) {
+            $url = str_replace('http://', 'https://', $url);
+        } else {
+            $url = str_replace('https://', 'http://', $url);
+        }
+
         return $url;
     }
 
@@ -485,6 +491,12 @@ class plgSystemScriptMerge extends JPlugin
         // Return the cache-file itself
         } else {
             $url = JURI::root().'cache/plg_scriptmerge/'.$cacheFile;
+        }
+
+        if(JURI::getInstance()->isSSL()) {
+            $url = str_replace('http://', 'https://', $url);
+        } else {
+            $url = str_replace('https://', 'http://', $url);
         }
 
         return $url;

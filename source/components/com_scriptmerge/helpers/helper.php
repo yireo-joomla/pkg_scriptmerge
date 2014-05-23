@@ -567,6 +567,13 @@ class ScriptMergeHelper
         if ($include_url) {
             $path = JURI::root().$path;
         }
+
+        if(JURI::getInstance()->isSSL()) {
+            $path = str_replace('http://', 'https://', $path);
+        } else {
+            $path = str_replace('https://', 'http://', $path);
+        }
+
         return $path;
     }
 
