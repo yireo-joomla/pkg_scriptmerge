@@ -49,6 +49,7 @@
                     <option value="closurecompiler">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_CLOSURECOMPILER</option>
                     <option value="phpjsmin">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_PHPJSMIN</option>
                     <option value="javascriptpacker">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_JAVASCRIPTPACKER</option>
+                    <option value="experimental">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_EXPERIMENTAL</option>
                 </field>
                 <field name="skip_compressed" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_SKIP_COMPRESSED" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_SKIP_COMPRESSED_DESC">
                     <option value="0">JNO</option>
