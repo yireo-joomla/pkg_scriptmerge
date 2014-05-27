@@ -74,8 +74,6 @@ class ScriptMergeHelper
 			    	$buffer = preg_replace('!/\*[^\'."].*?\*/!s', '', $buffer);
 				    $buffer = preg_replace('/\n\s*\n/', "\n", $buffer);
     				$buffer = preg_replace("/<!--.*-->/Us","", $buffer);
-	    			$buffer = preg_replace('/[^:.\-.1.\\\.C.b]\/\/[^,.".*.\'.;.$.).w.s.8].*/', '', $buffer);	
-                    $buffer = preg_replace('/\s+/', ' ', $buffer);
                     break;
 
                 case 'jsminplus':
