@@ -573,6 +573,11 @@ class ScriptMergeHelper
      */
     static public function hasExpired($timestampFile, $cacheFile)
     {
+        // Check for browser request
+        if(isset($_SERVER['HTTP_CACHE_CONTROL']) && $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache') {
+            return true;
+        }
+
         // Check if the expiration file exists
         if (file_exists($timestampFile) && @is_file($timestampFile)) {
             $time = (int)@file_get_contents($timestampFile);
