@@ -35,6 +35,10 @@
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
+                <field name="remove_mootools" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_REMOVE_MOOTOOLS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_REMOVE_MOOTOOLS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
             </fieldset>
             <fieldset name="compress" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_COMPRESS" addfieldpath="/administrator/components/com_scriptmerge/fields">
                 <field name="compress_css" type="list" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS_DESC">

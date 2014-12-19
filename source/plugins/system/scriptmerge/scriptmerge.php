@@ -290,11 +290,19 @@ class plgSystemScriptMerge extends JPlugin
                     $filepath = ScriptMergeHelper::getFilePath($match);
 
                     if(!empty($filepath)) {
-                        $files[] = array(
-                            'remote' => 0,
-                            'file' => $filepath,
-                            'html' => $matches[0][$index],
-                        );
+
+                        $add = true;
+                        if($this->getParams()->get('remove_mootools') == 1 && stristr($filepath, 'mootools')) {
+                            $add = false;
+                        }
+
+                        if($add) {
+                            $files[] = array(
+                                'remote' => 0,
+                                'file' => $filepath,
+                                'html' => $matches[0][$index],
+                            );
+                        }
                     }
                 }
             }
