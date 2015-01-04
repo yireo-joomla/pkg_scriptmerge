@@ -3,7 +3,7 @@
  * CssMin - A (simple) css minifier with benefits
  * 
  * --
- * Copyright (C) 2014 Joe Scylla <joe.scylla@gmail.com>
+ * Copyright 2015 Joe Scylla <joe.scylla@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -2135,7 +2135,7 @@ class CssMinifier
  * CssMin - A (simple) css minifier with benefits
  * 
  * --
- * Copyright (C) 2014 Joe Scylla <joe.scylla@gmail.com>
+ * Copyright 2015 Joe Scylla <joe.scylla@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
