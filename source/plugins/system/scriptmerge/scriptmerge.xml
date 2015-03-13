@@ -49,6 +49,7 @@
                 <field name="compress_js" type="list" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_DESC">
                     <option value="">JNO</option>
                     <option value="simple">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_SIMPLE</option>
+                    <option value="simple2">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_SIMPLE2</option>
                     <option value="jsminplus">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_JSMINPLUS</option>
                     <option value="closurecompiler">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_CLOSURECOMPILER</option>
                     <!--<option value="phpjsmin">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_PHPJSMIN</option>
