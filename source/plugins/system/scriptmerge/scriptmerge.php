@@ -446,8 +446,21 @@ class plgSystemScriptMerge extends JPlugin
             $cachePath = $tmp_path.'/'.$cacheFile;
             $cacheExpireFile = $cachePath.'_expire';
 
-            // Check the cache
+            $hasExpired = false;
             if(ScriptMergeHelper::hasExpired($cacheExpireFile, $cachePath)) {
+                $hasExpired = true;
+            }
+
+            // @todo: Make this optional
+            foreach($list as $file) {
+                if(@filemtime($file['file'] > @filemtime($cachePath))) {
+                    $hasExpired = true;
+                    break;
+                }
+            }
+
+            // Check the cache
+            if($hasExpired) {
 
                 $buffer = null;
                 foreach($list as $file) {
