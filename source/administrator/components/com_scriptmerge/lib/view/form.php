@@ -47,11 +47,6 @@ class YireoViewForm extends YireoView
     protected $_editor_field = null;
 
     /*
-     * Default task
-     */
-    protected $_task = null;
-
-    /*
      * Main constructor method
      *
      * @access public
@@ -61,6 +56,11 @@ class YireoViewForm extends YireoView
      */
     public function __construct()
     {
+        // Add the Yireo form fields
+        jimport('joomla.form.form');
+        JForm::addFieldPath(JPATH_LIBRARIES.'/yireo/form/fields');
+		JForm::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR.'/fields');
+
         // Call the parent constructor
         $rt = parent::__construct();
 
@@ -84,7 +84,7 @@ class YireoViewForm extends YireoView
     public function display($tpl = null)
     {
         // Hide the menu
-        JRequest::setVar('hidemainmenu', 1);
+        $this->jinput->set('hidemainmenu', 1);
     
         // Initialize tooltips
         JHTML::_('behavior.tooltip');
