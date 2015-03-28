@@ -981,7 +981,7 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function isEnabledCss()
 	{
-		if ($this->getParams()->get('enable_css', 1) == 1)
+		if ($this->getParams()->get('enable_css', 1) == 0)
 		{
 			return false;
 		}

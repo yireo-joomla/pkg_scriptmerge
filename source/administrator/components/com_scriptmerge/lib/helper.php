@@ -217,7 +217,12 @@ class YireoHelper
         if(!empty($params) && is_string($params)) $registry->loadString($params);
         if(!empty($params) && is_array($params)) $registry->loadArray($params);
 
-        $fileContents = @file_get_contents($file);
+        if(is_file($file) && is_readable($file)) {
+            $fileContents = file_get_contents($file);
+        } else {
+            $fileContents = null;
+        }
+
         if(preg_match('/\.xml$/', $fileContents)) {
             $registry->loadFile($file, 'XML');
         } elseif(preg_match('/\.json$/', $fileContents)) {
