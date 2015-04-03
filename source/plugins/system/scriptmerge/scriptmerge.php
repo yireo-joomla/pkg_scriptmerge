@@ -180,7 +180,7 @@ class plgSystemScriptMerge extends JPlugin
 		$body = $this->addMergeUrl($body, $matches);
 
 		// Make sure all MooTools scripts are loaded first
-		if ($application->isAdmin() && $this->getParams()->get('backend') == 1)
+		if ($application->isAdmin() && $this->params->get('backend') == 1)
 		{
 			if (preg_match_all('/\<script([^\>]+)mootools(.*).js([^\>]+)\>\<\/script\>/', $body, $matches))
 			{
@@ -203,6 +203,7 @@ class plgSystemScriptMerge extends JPlugin
 	 * Method to detect all the CSS stylesheets in the HTML-body
 	 *
 	 * @param string $body
+	 *
 	 * @return array
 	 */
 	private function getCssMatches($body = null)
@@ -219,7 +220,7 @@ class plgSystemScriptMerge extends JPlugin
 		if (isset($matches[3]))
 		{
 			// Get the exclude-matches
-			$exclude_css = explode(',', $this->getParams()->get('exclude_css'));
+			$exclude_css = explode(',', $this->params->get('exclude_css'));
 
 			if (!empty($exclude_css))
 			{
@@ -315,7 +316,7 @@ class plgSystemScriptMerge extends JPlugin
 		preg_match_all('/<script([^\>]+)src="([^\"]+)"(.*)><\/script>/msU', $buffer, $matches);
 
 		// Build the list of files to include
-		$excludes = trim($this->getParams()->get('exclude_js'));
+		$excludes = trim($this->params->get('exclude_js'));
 		$excludes = (!empty($excludes)) ? explode(',', $excludes) : array();
 
 		foreach ($excludes as $i => $e)
@@ -326,7 +327,7 @@ class plgSystemScriptMerge extends JPlugin
 		// Add extra scripts in the backend
 		$application = JFactory::getApplication();
 
-		if ($application->isAdmin() && $this->getParams()->get('backend') == 1)
+		if ($application->isAdmin() && $this->params->get('backend') == 1)
 		{
 			$excludes[] = 'mootools.js';
 			$excludes[] = 'mootools-core.js';
@@ -353,7 +354,7 @@ class plgSystemScriptMerge extends JPlugin
 				}
 
 				// Skip already compressed files
-				if ($this->getParams()->get('skip_compressed', 0) == 1)
+				if ($this->params->get('skip_compressed', 0) == 1)
 				{
 					if (preg_match('/\.(pack|min)\.js/', $match))
 					{
@@ -397,7 +398,7 @@ class plgSystemScriptMerge extends JPlugin
 					{
 						$add = true;
 
-						if ($this->getParams()->get('remove_mootools') == 1 && stristr($filepath, 'mootools'))
+						if ($this->params->get('remove_mootools') == 1 && stristr($filepath, 'mootools'))
 						{
 							$add = false;
 						}
@@ -434,7 +435,7 @@ class plgSystemScriptMerge extends JPlugin
 			if (!empty($list))
 			{
 				// Create a base64-encoded list of the merged files
-				if ($this->getParams()->get('merge_type') == 'files')
+				if ($this->params->get('merge_type') == 'files')
 				{
 					$url = $this->buildMergeUrl($type, $list);
 
@@ -448,13 +449,13 @@ class plgSystemScriptMerge extends JPlugin
 				if ($type == 'css')
 				{
 					$tag = '<link rel="stylesheet" href="' . $url . '" type="text/css" />';
-					$tag_position = $this->getParams()->get('css_position');
+					$tag_position = $this->params->get('css_position');
 				}
 				else
 				{
-					$async = ($this->getParams()->get('async_merged', 0) == 1) ? ' async' : '';
+					$async = ($this->params->get('async_merged', 0) == 1) ? ' async' : '';
 					$tag = '<script src="' . $url . '"' . $async . ' type="text/javascript"></script>';
-					$tag_position = $this->getParams()->get('js_position');
+					$tag_position = $this->params->get('js_position');
 				}
 
 				switch ($tag_position)
@@ -484,6 +485,7 @@ class plgSystemScriptMerge extends JPlugin
 	 *
 	 * @param string $type
 	 * @param array  $list
+	 *
 	 * @return string
 	 */
 	private function buildMergeUrl($type, $list = array())
@@ -497,9 +499,10 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		$app = JFactory::getApplication()->getClientId();
-		$version = $this->getParams()->get('version', 1);
+		$version = $this->params->get('version', 1);
 		$files = ScriptMergeHelper::encodeList($files);
-		$url = 'index.php?option=com_scriptmerge&format=raw&amp;tmpl=component&amp;type=' . $type . '&app=' . $app . '&version=' . $version . '&files=' . $files;
+		$url = 'index.php?option=com_scriptmerge&format=raw&tmpl=component';
+		$url .= '&type=' . $type . '&app=' . $app . '&version=' . $version . '&files=' . $files;
 
 		// Determine the right URL, based on the frontend or backend
 		if (JFactory::getApplication()->isSite() == true)
@@ -512,41 +515,10 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		// Domainname sharding
-		$domain = ($type == 'js') ? $this->getParams()->get('js_domain') : $this->getParams()->get('css_domain');
+		$domain = ($type == 'js') ? $this->params->get('js_domain') : $this->params->get('css_domain');
+		$url = $this->replaceUrlDomain($url, $domain);
 
-		if (!empty($domain))
-		{
-			$domain = preg_replace('/\/$/', '', $domain);
-			$applyDomain = true;
-
-			if (preg_match('/^(http|https)\:\/\//', $domain, $domainMatch))
-			{
-				if ($domainMatch[1] == 'http' && JURI::getInstance()->isSSL())
-				{
-					$applyDomain = false;
-				}
-				else
-				{
-					$oldDomain = JURI::root();
-					$oldDomain = preg_replace('/\/$/', '', $oldDomain);
-				}
-			}
-			else
-			{
-				$oldDomain = JURI::getInstance()->toString(array('host'));
-			}
-
-			if ($applyDomain)
-			{
-				if (preg_match('/^(http|https)\:\/\//', $url) == false)
-				{
-					$url = JURI::root() . preg_replace('/^\//', '', $url);
-				}
-
-				$url = str_replace($oldDomain, $domain, $url);
-			}
-		}
-
+		// Protocol change
 		if (JURI::getInstance()->isSSL())
 		{
 			$url = str_replace('http://', 'https://', $url);
@@ -586,6 +558,7 @@ class plgSystemScriptMerge extends JPlugin
 			$cacheExpireFile = $cachePath . '_expire';
 
 			$hasExpired = false;
+
 			if (ScriptMergeHelper::hasExpired($cacheExpireFile, $cachePath))
 			{
 				$hasExpired = true;
@@ -670,6 +643,11 @@ class plgSystemScriptMerge extends JPlugin
 			$url = JURI::root() . 'cache/plg_scriptmerge/' . $cacheFile;
 		}
 
+		// Domainname sharding
+		$domain = ($type == 'js') ? $this->params->get('js_domain') : $this->params->get('css_domain');
+		$url = $this->replaceUrlDomain($url, $domain);
+
+		// Protocol change
 		if (JURI::getInstance()->isSSL())
 		{
 			$url = str_replace('http://', 'https://', $url);
@@ -683,10 +661,56 @@ class plgSystemScriptMerge extends JPlugin
 	}
 
 	/**
+	 * Method to replace the domain in an URL
+	 *
+	 * @param string $url
+	 * @param string $domain
+	 *
+	 * @return string
+	 */
+	private function replaceUrlDomain($url, $domain)
+	{
+		if (!empty($domain))
+		{
+			$domain = preg_replace('/\/$/', '', $domain);
+			$applyDomain = true;
+
+			if (preg_match('/^(http|https)\:\/\//', $domain, $domainMatch))
+			{
+				if ($domainMatch[1] == 'http' && JURI::getInstance()->isSSL())
+				{
+					$applyDomain = false;
+				}
+				else
+				{
+					$oldDomain = JURI::root();
+					$oldDomain = preg_replace('/\/$/', '', $oldDomain);
+				}
+			}
+			else
+			{
+				$oldDomain = JURI::getInstance()->toString(array('host'));
+			}
+
+			if ($applyDomain)
+			{
+				if (preg_match('/^(http|https)\:\/\//', $url) == false)
+				{
+					$url = JURI::root() . preg_replace('/^\//', '', $url);
+				}
+
+				$url = str_replace($oldDomain, $domain, $url);
+			}
+		}
+
+		return $url;
+	}
+
+	/**
 	 * Method to remove obsolete tags in the HTML body
 	 *
 	 * @param string $body
-	 * @param array  $files
+	 * @param array  $matches
 	 *
 	 * @return string
 	 */
@@ -715,7 +739,7 @@ class plgSystemScriptMerge extends JPlugin
 			}
 		}
 
-		if ($this->getParams()->get('compress_html') == 1)
+		if ($this->params->get('compress_html') == 1)
 		{
 			$body = str_replace("\n\n", "\n", $body);
 			$body = str_replace("\r\r", "\r", $body);
@@ -736,7 +760,7 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function parseImages($text = null)
 	{
-		if ($this->getParams()->get('data_uris', 0) != 1)
+		if ($this->params->get('data_uris', 0) != 1)
 		{
 			return $text;
 		}
@@ -805,9 +829,9 @@ class plgSystemScriptMerge extends JPlugin
 			$newFile = preg_replace('/\.js$/', '.min.js', $file);
 
 			// Try to use JSMIN
-			$jsmin = $this->getParams()->get('jsmin');
+			$jsmin = $this->params->get('jsmin');
 
-			if (!empty($jsmin) && $this->getParams()->get('use_jsmin', 0) == 1)
+			if (!empty($jsmin) && $this->params->get('use_jsmin', 0) == 1)
 			{
 				exec("$jsmin < $file > $newFile");
 			}
@@ -822,7 +846,7 @@ class plgSystemScriptMerge extends JPlugin
 	/**
 	 * Set a new cache expiration
 	 *
-	 * @param string $cache
+	 * @param string $file
 	 *
 	 * @return null
 	 */
@@ -832,11 +856,11 @@ class plgSystemScriptMerge extends JPlugin
 
 		if (method_exists($config, 'getValue'))
 		{
-			$lifetime = (int) $config->getValue('config.lifetime');
+			$lifetime = (int)$config->getValue('config.lifetime');
 		}
 		else
 		{
-			$lifetime = (int) $config->get('config.lifetime');
+			$lifetime = (int)$config->get('config.lifetime');
 		}
 
 		if (empty($lifetime) || $lifetime < 120)
@@ -868,7 +892,13 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function getArrayFromParam($param)
 	{
-		$data = $this->getParams()->get($param);
+		$data = $this->params->get($param);
+
+        if (is_array($data))
+        {
+            return $data;
+        }
+
 		$data = trim($data);
 
 		if (empty($data))
@@ -904,11 +934,11 @@ class plgSystemScriptMerge extends JPlugin
 		$application = JFactory::getApplication();
 		$jinput = $application->input;
 
-		if ($application->isAdmin() && $this->getParams()->get('backend', 0) == 0)
+		if ($application->isAdmin() && $this->params->get('backend', 0) == 0)
 		{
 			return false;
 		}
-		elseif ($application->isSite() && $this->getParams()->get('frontend', 1) == 0)
+		elseif ($application->isSite() && $this->params->get('frontend', 1) == 0)
 		{
 			return false;
 		}
@@ -951,7 +981,7 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		// Exclude components
-		$components = $this->getParams()->get('exclude_components');
+		$components = $this->params->get('exclude_components');
 
 		if (empty($components))
 		{
@@ -981,7 +1011,7 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function isEnabledCss()
 	{
-		if ($this->getParams()->get('enable_css', 1) == 0)
+		if ($this->params->get('enable_css', 1) == 0)
 		{
 			return false;
 		}
@@ -1010,7 +1040,7 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function isEnabledJs()
 	{
-		if ($this->getParams()->get('enable_js', 1) == 0)
+		if ($this->params->get('enable_js', 1) == 0)
 		{
 			return false;
 		}
