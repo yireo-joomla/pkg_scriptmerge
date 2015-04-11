@@ -51,7 +51,9 @@ class ScriptMergeHelper
             // Switch between the various compression-schemes
             switch ($compress_js) {
 
-                $buffer = preg_replace("/(\/\*\*\/)(\/\/(?!([^\n\r]*?\*\/)).*)/", "$1", $buffer);				
+                case 'simple':
+
+	$buffer = preg_replace("/(\/\*\*\/)(\/\/(?!([^\n\r]*?\*\/)).*)/", "$1", $buffer);				
 
     do {$buffer = preg_replace("/(http(s)?\:)([^\r\n]*?)(\/\/)/", "$1$3qDdXX", $buffer, 1, $count);} while ($count); 
     ////---------------------------------------------------------------------------------------------------------
