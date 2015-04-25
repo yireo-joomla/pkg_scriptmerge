@@ -2,25 +2,23 @@
 <extension type="component" version="3.3" method="upgrade">
     <name>COM_SCRIPTMERGE</name>
     <author>Yireo</author>
-    <authoremail>support@yireo.com</authoremail>
-    <authorurl>http://www.yireo.com</authorurl>
-    <creationDate>March 2015</creationDate>
+    <authoremail>info@yireo.com</authoremail>
+    <authorurl>https://www.yireo.com</authorurl>
+    <creationDate>April 2015</creationDate>
     <copyright>Copyright 2015 Yireo.com</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>0.9.20</version>
+    <version>0.10.0</version>
     <description>COM_SCRIPTMERGE_DESC</description>
 
     <files folder="site">
         <folder>helpers</folder>
         <folder>lib</folder>
+        <folder>utilities</folder>
         <filename>index.html</filename>
         <filename>scriptmerge.php</filename>
     </files>
 
     <administration>
-
-        <!--<menu img="../media/com_scriptmerge/images/menu-scriptmerge.png">COM_SCRIPTMERGE</menu>-->
-
         <files folder="admin">
             <filename>controller.php</filename>
             <filename>index.html</filename>
