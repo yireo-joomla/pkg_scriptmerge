@@ -7,7 +7,7 @@
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
     <authorEmail>info@yireo.com</authorEmail>
     <authorUrl>www.yireo.com</authorUrl>
-    <version>0.9.25</version>
+    <version>0.10.1</version>
     <description>PLG_SYSTEM_SCRIPTMERGE_DESC</description>
 
     <files>
@@ -24,8 +24,8 @@
         <fields name="params">
             <fieldset name="merge" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_MERGE">
                 <field name="merge_type" type="list" default="md5sum" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_MERGE_TYPE" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_MERGE_TYPE_DESC">
-                    <option value="md5sum">Checksum (cache-file)</option>
-                    <option value="files">Filelist (dynamic)</option>
+                    <option value="md5sum">PLG_SYSTEM_SCRIPTMERGE_FIELD_MERGE_TYPE_OPTION_MD5SUM</option>
+                    <option value="files">PLG_SYSTEM_SCRIPTMERGE_FIELD_MERGE_TYPE_OPTION_FILES</option>
                 </field>
                 <field name="enable_css" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_CSS_DESC">
                     <option value="0">JNO</option>
@@ -47,6 +47,18 @@
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
+                <field name="hash_method" type="list" default="advanced" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_HASH_METHOD" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_HASH_METHOD_DESC">
+                    <option value="simple">PLG_SYSTEM_SCRIPTMERGE_FIELD_HASH_METHOD_OPTION_SIMPLE</option>
+                    <option value="advanced">PLG_SYSTEM_SCRIPTMERGE_FIELD_HASH_METHOD_OPTION_ADVANCED</option>
+                </field>
+                <field name="frontend" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_FRONTEND" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_FRONTEND_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="backend" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_BACKEND" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_BACKEND_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
             </fieldset>
             <fieldset name="compress" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_COMPRESS" addfieldpath="/administrator/components/com_scriptmerge/fields">
                 <field name="compress_css" type="list" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_CSS_DESC">
@@ -58,11 +70,11 @@
                     <option value="">JNO</option>
                     <option value="simple">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_SIMPLE</option>
                     <option value="simple2">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_SIMPLE2</option>
+                    <option value="simple3">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_SIMPLE3</option>
                     <option value="jsminplus">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_JSMINPLUS</option>
                     <option value="closurecompiler">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_CLOSURECOMPILER</option>
                     <!--<option value="phpjsmin">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_PHPJSMIN</option>
                     <option value="javascriptpacker">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_JAVASCRIPTPACKER</option>-->
-                    <option value="experimental">PLG_SYSTEM_SCRIPTMERGE_FIELD_COMPRESS_JS_OPTION_EXPERIMENTAL</option>
                 </field>
                 <field name="use_comments" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_COMMENTS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_COMMENTS_DESC">
                     <option value="0">JNO</option>
@@ -85,36 +97,7 @@
                 <field name="exclude_js_useragents" type="textarea" rows="5" cols="50" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_JS_USERAGENTS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_JS_USERAGENTS_DESC" />
                 <field name="exclude_css_useragents" type="textarea" rows="5" cols="50" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_CSS_USERAGENTS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_CSS_USERAGENTS_DESC" />
             </fieldset>
-            <fieldset name="advanced" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_ADVANCED">
-                <field name="frontend" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_FRONTEND" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_FRONTEND_DESC">
-                    <option value="0">JNO</option>
-                    <option value="1">JYES</option>
-                </field>
-                <field name="backend" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_BACKEND" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_BACKEND_DESC">
-                    <option value="0">JNO</option>
-                    <option value="1">JYES</option>
-                </field>
-
-                <field name="image_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_IMAGE_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_IMAGE_DOMAIN_DESC" />
-                <field name="js_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_DOMAIN_DESC" />
-                <field name="css_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_DOMAIN_DESC" />
-                <field name="expiration" type="text" default="30" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXPIRATION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXPIRATION_DESC" />
-                <field name="version" type="text" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_VERSION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_VERSION_DESC" />
-                <field name="data_uris" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_DESC">
-                    <option value="0">JNO</option>
-                    <option value="1">JYES</option>
-                </field>
-                <field name="data_uris_filesize" type="text" default="2000" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_FILESIZE" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_FILESIZE_DESC" />
-                <field name="use_webp" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_WEBP" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_WEBP_DESC">
-                    <option value="0">JNO</option>
-                    <option value="1">JYES</option>
-                </field>
-                <field name="cwebp" type="text" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_CWEBP" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_CWEBP_DESC" />
-                <field name="use_jsmin" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_JSMIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_JSMIN_DESC">
-                    <option value="0">JNO</option>
-                    <option value="1">JYES</option>
-                </field>
-                <field name="jsmin" type="text" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_JSMIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_JSMIN_DESC" />
+            <fieldset name="loading" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_LOADING">
                 <field name="async_merged" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ASYNC_MERGED" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ASYNC_MERGED_DESC">
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
@@ -129,6 +112,30 @@
                     <option value="body_end">PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_POSITION_OPTION_BODY_END</option>
                     <option value="head_end">PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_POSITION_OPTION_HEAD_END</option>
                 </field>
+            </fieldset>
+            <fieldset name="advanced" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_ADVANCED">
+                <field name="image_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_IMAGE_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_IMAGE_DOMAIN_DESC" />
+                <field name="js_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_JS_DOMAIN_DESC" />
+                <field name="css_domain" type="text" default="" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_DOMAIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_CSS_DOMAIN_DESC" />
+                <field name="expiration" type="text" default="30" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXPIRATION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXPIRATION_DESC" />
+                <field name="version" type="text" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_VERSION" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_VERSION_DESC" />
+                <field name="data_uris" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="data_uris_filesize" type="text" default="2000" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_FILESIZE" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_DATA_URIS_FILESIZE_DESC" />
+            </fieldset>
+            <fieldset name="guru" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_GURU">
+                <field name="use_webp" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_WEBP" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_WEBP_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="cwebp" type="text" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_CWEBP" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_CWEBP_DESC" />
+                <field name="use_jsmin" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_JSMIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_USE_JSMIN_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="jsmin" type="text" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_JSMIN" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_JSMIN_DESC" />
             </fieldset>
         </fields>
     </config>

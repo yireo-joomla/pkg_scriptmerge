@@ -552,7 +552,7 @@ class plgSystemScriptMerge extends JPlugin
 
 		if (!empty($list))
 		{
-			$cacheId = md5(var_export($list, true));
+            $cacheId = $this->getHashFromList($list);
 			$cacheFile = $cacheId . '.' . $type;
 			$cachePath = $tmp_path . '/' . $cacheFile;
 			$cacheExpireFile = $cachePath . '_expire';
@@ -658,6 +658,33 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		return $url;
+	}
+
+	/**
+	 * Method to return a hash representing the list of files
+	 *
+	 * @param $list
+	 *
+	 * @return string
+	 */
+	private function getHashFromList($list)
+	{
+		if ($this->params->get('hash_method') == 'simple')
+		{
+			return md5(serialize($list));
+		}
+
+		$hashes = array();
+
+		foreach ($list as $item)
+		{
+			if (!empty($item['file']) && file_exists($item['file']) && is_readable($item['file']))
+			{
+				$hashes[] = md5_file($item['file']);
+			}
+		}
+
+		return md5(serialize($hashes));
 	}
 
 	/**
