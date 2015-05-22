@@ -564,15 +564,27 @@ class plgSystemScriptMerge extends JPlugin
 				$hasExpired = true;
 			}
 
-			// @todo: Make this optional
-			foreach ($list as $file)
-			{
-				if (@filemtime($file['file'] > @filemtime($cachePath)))
-				{
-					$hasExpired = true;
-					break;
-				}
-			}
+            if (file_exists($cachePath))
+            {
+			    foreach ($list as $file)
+                {
+                    if (file_exists($file['file']) == false)
+                    {
+                        $hasExpired = true;
+                        break;
+                    }
+
+                    if (filemtime($file['file'] > filemtime($cachePath)))
+                    {
+                        $hasExpired = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                $hasExpired = true;
+            }
 
 			// Check the cache
 			if ($hasExpired)
