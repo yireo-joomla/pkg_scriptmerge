@@ -1079,7 +1079,7 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function isEnabledJs()
 	{
-		if ($this->params->get('enable_js', 1) == 0)
+		if ($this->params->get('enable_js', 0) == 0)
 		{
 			return false;
 		}
