@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension version="3.0" type="file" method="upgrade">
+    <name>pt-BR.plg_system_scriptmerge</name>
+    <tag>pt-BR</tag>
+    <version>0.10.0</version>
+    <creationDate>April 2015</creationDate>
+    <author>Gilvanilson Santos </author>
+    <authorEmail>grupogvsantos@gmail.com</authorEmail>
+    <authorUrl>https://www.facebook.com/gilvanilson</authorUrl>
+    <copyright>(C) 2015 Gilvanilson Santos</copyright>
+    <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
+    <description>Brazilian-Portuguese language pack for ScriptMerge</description>
+
+    <fileset>
+       <files target="administrator/language/pt-BR">
+          <filename>pt-BR.plg_system_scriptmerge.sys.ini</filename>        
+          <filename>pt-BR.plg_system_scriptmerge.ini</filename>        
+       </files>
+    </fileset>
+</extension>
