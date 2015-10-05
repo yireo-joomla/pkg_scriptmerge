@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system" method="upgrade">
     <name>PLG_SYSTEM_SCRIPTMERGE</name>
     <author>Yireo</author>
-    <creationDate>April 2015</creationDate>
+    <creationDate>October 2015</creationDate>
     <copyright>Copyright 2015 Yireo.com. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
     <authorEmail>info@yireo.com</authorEmail>
     <authorUrl>www.yireo.com</authorUrl>
-    <version>0.10.1</version>
+    <version>0.10.2</version>
     <description>PLG_SYSTEM_SCRIPTMERGE_DESC</description>
 
     <files>
@@ -88,6 +88,7 @@
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
+                <field name="include_css" type="textarea" rows="10" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_INCLUDE_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_INCLUDE_CSS_DESC" />
             </fieldset>
             <fieldset name="exclude" label="PLG_SYSTEM_SCRIPTMERGE_FIELDSET_EXCLUDE" addfieldpath="/administrator/components/com_scriptmerge/fields">
                 <field name="exclude_css" type="textarea" rows="5" cols="50" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_CSS" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_EXCLUDE_CSS_DESC" />

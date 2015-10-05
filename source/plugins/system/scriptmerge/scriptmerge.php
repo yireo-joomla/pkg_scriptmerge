@@ -449,6 +449,7 @@ class plgSystemScriptMerge extends JPlugin
 				if ($type == 'css')
 				{
 					$tag = '<link rel="stylesheet" href="' . $url . '" type="text/css" />';
+                    $tag = $this->getIncludeCss();
 					$tag_position = $this->params->get('css_position');
 				}
 				else
@@ -1100,4 +1101,23 @@ class plgSystemScriptMerge extends JPlugin
 
 		return true;
 	}
+
+    /**
+     * Return the configured include CSS if any
+     *
+     * @return string
+     */
+    protected function getIncludeCss()
+    {
+        $includeCss = $this->params->get('include_css');
+        $includeCss = trim($includeCss);
+
+        if (!empty($includeCss))
+        {
+            $tag = "\n<style>" . $includeCss . "</style>";
+            return $tag;
+        }
+
+        return '';
+    }
 }
