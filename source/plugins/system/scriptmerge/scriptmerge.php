@@ -169,6 +169,14 @@ class plgSystemScriptMerge extends JPlugin
 		{
 			$matches['js'] = $this->getJsMatches($body);
 		}
+		
+		if ($this->isEnabledImg()) {
+			$matches['img'] = $this->getImgMatches($body);
+
+			foreach ($matches['img'] as $img) {
+				$body = str_replace($img['file'], $img['file'].'" width="'.$img['width'].'" height="'.$img['height'], $body);
+			}
+		}
 
 		// Remove all current links from the document
 		$body = $this->cleanup($body, $matches);
@@ -1097,6 +1105,21 @@ class plgSystemScriptMerge extends JPlugin
 					return false;
 				}
 			}
+		}
+
+		return true;
+	}
+	
+	/**
+	 * Check if this plugin is enabled
+	 *
+	 * @return boolean
+	 */
+	private function isEnabledImg()
+	{
+		if ($this->params->get('enable_img', 0) == 0)
+		{
+			return false;
 		}
 
 		return true;
