@@ -172,6 +172,16 @@ class plgSystemScriptMerge extends JPlugin
 		{
 			$matches['js'] = $this->getJsMatches($body);
 		}
+		
+		if ($this->isEnabledImg())
+		{
+			$matches['img'] = $this->getImgMatches($body);
+
+			foreach ($matches['img'] as $img)
+			{
+				$body = str_replace($img['file'], $img['file'].'" width="'.$img['width'].'" height="'.$img['height'], $body);
+			}
+		}
 
 		// Remove all current links from the document
 		$body = $this->cleanup($body, $matches);
@@ -412,6 +422,47 @@ class plgSystemScriptMerge extends JPlugin
 								'file' => $filepath,
 								'html' => $matches[0][$index],);
 						}
+					}
+				}
+			}
+		}
+
+		return $files;
+	}
+	
+	/**
+	 * Method which detects images and their size in the HTML body
+	 *
+	 * @param string $body
+	 *
+	 * @return array
+	 */
+	private function getImgMatches($body = null)
+	{
+		$files = array();
+		if (preg_match_all('/([a-zA-Z0-9\-\_\/\.]+)\.(png|jpg|jpeg|gif)/i', $body, $matches)) 
+		{
+			preg_match('/https?:(.*)/', JURI::base(), $uri_base);
+			preg_match('/\/([a-zA-Z0-9\-\_\.]+)$/', JPATH_SITE, $root_dir);
+
+			foreach ($matches[0] as $imagePath)
+			{
+				$imagePath = str_replace($uri_base[1], '', $imagePath);
+				$imageDir = str_replace('//','/',JPATH_SITE.'/'.str_replace($root_dir[0],'',$imagePath));
+
+				// Validates that is readable
+				if(@is_readable($imageDir) == true)
+				{
+					$img = getimagesize($imageDir);
+					$toAdd = array(
+						'file' => $imagePath,
+						'width' => $img[0],
+						'height' => $img[1]
+					);
+
+					if (!in_array($toAdd, $files))
+					{
+						$files[] = $toAdd;
 					}
 				}
 			}
@@ -1105,6 +1156,21 @@ class plgSystemScriptMerge extends JPlugin
 					return false;
 				}
 			}
+		}
+
+		return true;
+	}
+	
+	/**
+	 * Check if this plugin is enabled
+	 *
+	 * @return boolean
+	 */
+	private function isEnabledImg()
+	{
+		if ($this->params->get('enable_img', 0) == 0)
+		{
+			return false;
 		}
 
 		return true;

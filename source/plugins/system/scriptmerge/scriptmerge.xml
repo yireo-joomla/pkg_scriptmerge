@@ -35,6 +35,10 @@
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
+                <field name="enable_img" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_IMG" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_IMG_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
                 <field name="skip_compressed" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_SKIP_COMPRESSED" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_SKIP_COMPRESSED_DESC">
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
