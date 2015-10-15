@@ -311,9 +311,14 @@ class YireoModel extends YireoCommonModel
      */
     public function initLimit($limit = null) 
     {
-        if (is_numeric($limit) == false) {
-            $limit = $this->getFilter('list_limit', $this->app->getCfg('list_limit')); 
+        if (empty($limit)) {
+            $limit = $this->getFilter('list_limit');
         }
+
+        if (empty($limit)) {
+            $limit = $this->app->getUserStateFromRequest($this->getFilterName('limit'), 'list_limit', $this->app->getCfg('list_limit'), 'int');
+        }
+
         $this->setState('limit', $limit);
     }
 
@@ -328,8 +333,9 @@ class YireoModel extends YireoCommonModel
     public function initLimitstart($limitstart = null) 
     {
         if (is_numeric($limitstart) == false) {
-            $limitstart = $this->app->getUserStateFromRequest($this->_option_id.'limitstart', 'limitstart', 0, 'int');
+            $limitstart = $this->app->getUserStateFromRequest($this->getFilterName('limitstart'), 'limitstart', 0, 'int');
         }
+
         $this->setState('limitstart', $limitstart);
     }
 
@@ -347,9 +353,15 @@ class YireoModel extends YireoCommonModel
     public function getFilter($filter = '', $default = '', $type = 'cmd', $option = '') 
     {
         if ($this->_allow_filter == false) return null;
-        if (empty($option)) $option = $this->_option_id;
-        $value = $this->app->getUserStateFromRequest( $option.'filter_'.$filter, 'filter_'.$filter, $default, $type );
+        $value = $this->app->getUserStateFromRequest($this->getFilterName($filter), 'filter_'.$filter, $default, $type);
         return $value;
+    }
+
+    public function getFilterName($filter, $option = null)
+    {
+        if (empty($option)) $option = $this->_option_id;
+        
+        return $option.'filter_'.$filter;
     }
 
     /**

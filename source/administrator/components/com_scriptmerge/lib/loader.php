@@ -55,6 +55,9 @@ if(!function_exists('YireoLibraryLoader')) {
             case 'YireoAbstractView':
                 $filename = 'view';
                 break;
+            case 'YireoViewItem':
+                $filename = 'view/item';
+                break;
             case 'YireoViewForm':
                 $filename = 'view/form';
                 break;

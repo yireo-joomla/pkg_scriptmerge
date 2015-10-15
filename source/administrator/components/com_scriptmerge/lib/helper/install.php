@@ -155,6 +155,17 @@ class YireoHelperInstall
         return basename($file);
     }
 
+    static public function hasLibraryInstalled($library)
+    {
+        if(is_dir(JPATH_SITE.'/libraries/'.$library)) {
+            $query = 'SELECT `name` FROM `#__extensions` WHERE `type`="library" AND `element`="'.$library.'"';
+            $db = JFactory::getDBO();
+            $db->setQuery($query);
+            return (bool)$db->loadObject();
+        }
+        return false;
+    }
+
     static public function hasPluginInstalled($plugin, $group)
     {
         if(file_exists(JPATH_SITE.'/plugins/'.$group.'/'.$plugin.'/'.$plugin.'.xml')) {
@@ -201,6 +212,19 @@ class YireoHelperInstall
         return true;
     }
     
+    static public function autoInstallLibrary($library, $url, $label)
+    {
+        // If the library is already installed, exit
+        if(self::hasLibraryInstalled($library)) {
+            return true;
+        }
+
+        // Otherwise first, try to install the library
+        if(self::installExtension($url, $label) == false) {
+            JError::raiseWarning('SOME_ERROR_CODE', JText::sprintf('LIB_YIREO_HELPER_INSTALL_MISSING', $label));
+        }
+    }
+
     static public function autoInstallEnablePlugin($plugin, $group, $url, $label)
     {
         // If the plugin is already installed, enable it

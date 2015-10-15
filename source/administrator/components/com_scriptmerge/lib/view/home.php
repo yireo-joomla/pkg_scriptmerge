@@ -36,12 +36,12 @@ class YireoViewHome extends YireoView
      * @param null
      * @return null
      */
-    public function __construct()
+    public function __construct($config = array())
     {
         $this->loadToolbar = false;
 
         // Call the parent constructor
-        parent::__construct();
+        parent::__construct($config);
 
         // Load bootstrap
         YireoHelper::bootstrap();

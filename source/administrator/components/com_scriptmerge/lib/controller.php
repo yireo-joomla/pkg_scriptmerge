@@ -1005,9 +1005,20 @@ class YireoController extends YireoCommonController
             return $this->id;
         }
 
-        // Fetch the ID-list and return the first entry of it
         $cid = $this->_jinput->get('cid', array(0), null, 'array');
-        return (int)$cid[0];
+        $id = (int)$cid[0];
+        if (!empty($id)) {
+            $this->id = $id;
+            return $this->id;
+        }
+
+        $id = $this->_jinput->getInt('id');
+        if (!empty($id)) {
+            $this->id = $id;
+            return $this->id;
+        }
+
+        return $this->id;
     }
 
     /**
