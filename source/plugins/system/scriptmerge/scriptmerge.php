@@ -103,7 +103,8 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		// Construct the expiration time
-		$expires = (int) ($helper->getParams()->get('expiration', 30) * 60);
+		$expires = (int) ($helper->getParams()
+				->get('expiration', 30) * 60);
 
 		// Set the expiry in the future
 		if ($expires > 0)
@@ -123,7 +124,9 @@ class plgSystemScriptMerge extends JPlugin
 		header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()));
 		header('ETag: ' . md5($buffer));
 
-		if (function_exists('gzencode') && ScriptMergeHelper::getParams()->get('force_gzip', 0) == 1)
+		if (function_exists('gzencode') && ScriptMergeHelper::getParams()
+				->get('force_gzip', 0) == 1
+		)
 		{
 			header('Content-Encoding: gzip');
 			print gzencode($buffer);
@@ -290,8 +293,7 @@ class plgSystemScriptMerge extends JPlugin
 						$files[] = array(
 							'remote' => 0,
 							'file' => $filepath,
-							'html' => $matches[0][$index],
-						);
+							'html' => $matches[0][$index],);
 					}
 				}
 			}
@@ -408,8 +410,7 @@ class plgSystemScriptMerge extends JPlugin
 							$files[] = array(
 								'remote' => 0,
 								'file' => $filepath,
-								'html' => $matches[0][$index],
-							);
+								'html' => $matches[0][$index],);
 						}
 					}
 				}
@@ -449,7 +450,7 @@ class plgSystemScriptMerge extends JPlugin
 				if ($type == 'css')
 				{
 					$tag = '<link rel="stylesheet" href="' . $url . '" type="text/css" />';
-                    $tag = $this->getIncludeCss();
+					$tag .= $this->getIncludeCss();
 					$tag_position = $this->params->get('css_position');
 				}
 				else
@@ -499,14 +500,17 @@ class plgSystemScriptMerge extends JPlugin
 			$files[] = $file['file'];
 		}
 
-		$app = JFactory::getApplication()->getClientId();
+		$app = JFactory::getApplication()
+			->getClientId();
 		$version = $this->params->get('version', 1);
 		$files = ScriptMergeHelper::encodeList($files);
 		$url = 'index.php?option=com_scriptmerge&format=raw&tmpl=component';
 		$url .= '&type=' . $type . '&app=' . $app . '&version=' . $version . '&files=' . $files;
 
 		// Determine the right URL, based on the frontend or backend
-		if (JFactory::getApplication()->isSite() == true)
+		if (JFactory::getApplication()
+				->isSite() == true
+		)
 		{
 			$url = JRoute::_($url);
 		}
@@ -520,7 +524,9 @@ class plgSystemScriptMerge extends JPlugin
 		$url = $this->replaceUrlDomain($url, $domain);
 
 		// Protocol change
-		if (JURI::getInstance()->isSSL())
+		if (JURI::getInstance()
+			->isSSL()
+		)
 		{
 			$url = str_replace('http://', 'https://', $url);
 		}
@@ -542,9 +548,10 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function buildCacheUrl($type, $list = array())
 	{
-		// Check for the cache-path
 		$tmp_path = JPATH_SITE . '/cache/plg_scriptmerge/';
+		$cacheFile = null;
 
+		// Check for the cache-path
 		if (@is_dir($tmp_path) == false)
 		{
 			jimport('joomla.filesystem.folder');
@@ -553,7 +560,7 @@ class plgSystemScriptMerge extends JPlugin
 
 		if (!empty($list))
 		{
-            $cacheId = $this->getHashFromList($list);
+			$cacheId = $this->getHashFromList($list);
 			$cacheFile = $cacheId . '.' . $type;
 			$cachePath = $tmp_path . '/' . $cacheFile;
 			$cacheExpireFile = $cachePath . '_expire';
@@ -565,27 +572,27 @@ class plgSystemScriptMerge extends JPlugin
 				$hasExpired = true;
 			}
 
-            if (file_exists($cachePath))
-            {
-			    foreach ($list as $file)
-                {
-                    if (file_exists($file['file']) == false)
-                    {
-                        $hasExpired = true;
-                        break;
-                    }
+			if (file_exists($cachePath))
+			{
+				foreach ($list as $file)
+				{
+					if (file_exists($file['file']) == false)
+					{
+						$hasExpired = true;
+						break;
+					}
 
-                    if (filemtime($file['file'] > filemtime($cachePath)))
-                    {
-                        $hasExpired = true;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                $hasExpired = true;
-            }
+					if (filemtime($file['file'] > filemtime($cachePath)))
+					{
+						$hasExpired = true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				$hasExpired = true;
+			}
 
 			// Check the cache
 			if ($hasExpired)
@@ -634,6 +641,11 @@ class plgSystemScriptMerge extends JPlugin
 			}
 		}
 
+		if (empty($cacheFile))
+		{
+			return;
+		}
+
 		// Construct the minified version
 		if ($type == 'js')
 		{
@@ -661,7 +673,9 @@ class plgSystemScriptMerge extends JPlugin
 		$url = $this->replaceUrlDomain($url, $domain);
 
 		// Protocol change
-		if (JURI::getInstance()->isSSL())
+		if (JURI::getInstance()
+			->isSSL()
+		)
 		{
 			$url = str_replace('http://', 'https://', $url);
 		}
@@ -717,7 +731,9 @@ class plgSystemScriptMerge extends JPlugin
 
 			if (preg_match('/^(http|https)\:\/\//', $domain, $domainMatch))
 			{
-				if ($domainMatch[1] == 'http' && JURI::getInstance()->isSSL())
+				if ($domainMatch[1] == 'http' && JURI::getInstance()
+						->isSSL()
+				)
 				{
 					$applyDomain = false;
 				}
@@ -729,7 +745,8 @@ class plgSystemScriptMerge extends JPlugin
 			}
 			else
 			{
-				$oldDomain = JURI::getInstance()->toString(array('host'));
+				$oldDomain = JURI::getInstance()
+					->toString(array('host'));
 			}
 
 			if ($applyDomain)
@@ -896,11 +913,11 @@ class plgSystemScriptMerge extends JPlugin
 
 		if (method_exists($config, 'getValue'))
 		{
-			$lifetime = (int)$config->getValue('config.lifetime');
+			$lifetime = (int) $config->getValue('config.lifetime');
 		}
 		else
 		{
-			$lifetime = (int)$config->get('config.lifetime');
+			$lifetime = (int) $config->get('config.lifetime');
 		}
 
 		if (empty($lifetime) || $lifetime < 120)
@@ -914,16 +931,6 @@ class plgSystemScriptMerge extends JPlugin
 	}
 
 	/**
-	 * Load the parameters
-	 *
-	 * @return JParameter
-	 */
-	private function getParams()
-	{
-		return $this->params;
-	}
-
-	/**
 	 * Get an array from a parameter
 	 *
 	 * @param string $param
@@ -934,10 +941,10 @@ class plgSystemScriptMerge extends JPlugin
 	{
 		$data = $this->params->get($param);
 
-        if (is_array($data))
-        {
-            return $data;
-        }
+		if (is_array($data))
+		{
+			return $data;
+		}
 
 		$data = trim($data);
 
@@ -972,7 +979,7 @@ class plgSystemScriptMerge extends JPlugin
 	{
 		// Only continue in the right application, if enabled so
 		$application = JFactory::getApplication();
-		$jinput = $application->input;
+		$input = $application->input;
 
 		if ($application->isAdmin() && $this->params->get('backend', 0) == 0)
 		{
@@ -984,13 +991,13 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		// Dont do anything for the ScriptMerge component and the Plugin Manager
-		if (in_array($jinput->getCmd('option'), array('com_plugins', 'com_scriptmerge')))
+		if (in_array($input->getCmd('option'), array('com_plugins', 'com_scriptmerge')))
 		{
 			return false;
 		}
 
 		// Disable through URL
-		if ($jinput->getInt('scriptmerge', 1) == 0)
+		if ($input->getInt('scriptmerge', 1) == 0)
 		{
 			return false;
 		}
@@ -1004,7 +1011,8 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		// Exclude for menus
-		$menu = JFactory::getApplication()->getMenu('site');
+		$menu = JFactory::getApplication()
+			->getMenu('site');
 		$current_menuitem = $menu->getActive();
 
 		if (!empty($current_menuitem))
@@ -1033,7 +1041,7 @@ class plgSystemScriptMerge extends JPlugin
 			$components = explode(',', $components);
 		}
 
-		if (in_array($jinput->getCmd('option'), $components))
+		if (in_array($input->getCmd('option'), $components))
 		{
 			return false;
 		}
@@ -1102,22 +1110,23 @@ class plgSystemScriptMerge extends JPlugin
 		return true;
 	}
 
-    /**
-     * Return the configured include CSS if any
-     *
-     * @return string
-     */
-    protected function getIncludeCss()
-    {
-        $includeCss = $this->params->get('include_css');
-        $includeCss = trim($includeCss);
+	/**
+	 * Return the configured include CSS if any
+	 *
+	 * @return string
+	 */
+	protected function getIncludeCss()
+	{
+		$includeCss = $this->params->get('include_css');
+		$includeCss = trim($includeCss);
 
-        if (!empty($includeCss))
-        {
-            $tag = "\n<style>" . $includeCss . "</style>";
-            return $tag;
-        }
+		if (!empty($includeCss))
+		{
+			$tag = "\n<style>" . $includeCss . "</style>";
 
-        return '';
-    }
+			return $tag;
+		}
+
+		return '';
+	}
 }
