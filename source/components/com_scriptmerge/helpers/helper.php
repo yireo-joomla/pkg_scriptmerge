@@ -939,7 +939,7 @@ class ScriptMergeHelper
 	 *
 	 * @param null
 	 *
-	 * @return JParameter
+	 * @return JRegistry
 	 */
 	static public function getParams()
 	{

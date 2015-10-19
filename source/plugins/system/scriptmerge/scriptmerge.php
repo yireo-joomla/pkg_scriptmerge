@@ -17,14 +17,10 @@ jimport('joomla.plugin.plugin');
 /**
  * ScriptMerge System Plugin
  */
-class plgSystemScriptMerge extends JPlugin
+class PlgSystemScriptMerge extends JPlugin
 {
 	/**
 	 * Event onAfterRoute
-	 *
-	 * @param null
-	 *
-	 * @return null
 	 */
 	public function onAfterRoute()
 	{
@@ -34,13 +30,13 @@ class plgSystemScriptMerge extends JPlugin
 		// Don't do anything for non scriptmerge pages
 		if ($jinput->getCmd('option') != 'com_scriptmerge')
 		{
-			return false;
+			return;
 		}
 
 		// Check for frontend
 		if ($app->isSite() == false)
 		{
-			return false;
+			return;
 		}
 
 		// Require the helper
@@ -103,8 +99,8 @@ class plgSystemScriptMerge extends JPlugin
 		}
 
 		// Construct the expiration time
-		$expires = (int) ($helper->getParams()
-				->get('expiration', 30) * 60);
+		$helperParams = $helper->getParams();
+		$expires = (int) ($helperParams->get('expiration', 30) * 60);
 
 		// Set the expiry in the future
 		if ($expires > 0)
@@ -124,9 +120,7 @@ class plgSystemScriptMerge extends JPlugin
 		header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()));
 		header('ETag: ' . md5($buffer));
 
-		if (function_exists('gzencode') && ScriptMergeHelper::getParams()
-				->get('force_gzip', 0) == 1
-		)
+		if (function_exists('gzencode') && $helperParams->get('force_gzip', 0) == 1)
 		{
 			header('Content-Encoding: gzip');
 			print gzencode($buffer);
@@ -172,14 +166,14 @@ class plgSystemScriptMerge extends JPlugin
 		{
 			$matches['js'] = $this->getJsMatches($body);
 		}
-		
+
 		if ($this->isEnabledImg())
 		{
 			$matches['img'] = $this->getImgMatches($body);
 
 			foreach ($matches['img'] as $img)
 			{
-				$body = str_replace($img['file'], $img['file'].'" width="'.$img['width'].'" height="'.$img['height'], $body);
+				$body = str_replace($img['file'], $img['file'] . '" width="' . $img['width'] . '" height="' . $img['height'], $body);
 			}
 		}
 
@@ -429,7 +423,7 @@ class plgSystemScriptMerge extends JPlugin
 
 		return $files;
 	}
-	
+
 	/**
 	 * Method which detects images and their size in the HTML body
 	 *
@@ -440,7 +434,8 @@ class plgSystemScriptMerge extends JPlugin
 	private function getImgMatches($body = null)
 	{
 		$files = array();
-		if (preg_match_all('/([a-zA-Z0-9\-\_\/\.]+)\.(png|jpg|jpeg|gif)/i', $body, $matches)) 
+
+		if (preg_match_all('/([a-zA-Z0-9\-\_\/\.]+)\.(png|jpg|jpeg|gif)/i', $body, $matches))
 		{
 			preg_match('/https?:(.*)/', JURI::base(), $uri_base);
 			preg_match('/\/([a-zA-Z0-9\-\_\.]+)$/', JPATH_SITE, $root_dir);
@@ -448,17 +443,16 @@ class plgSystemScriptMerge extends JPlugin
 			foreach ($matches[0] as $imagePath)
 			{
 				$imagePath = str_replace($uri_base[1], '', $imagePath);
-				$imageDir = str_replace('//','/',JPATH_SITE.'/'.str_replace($root_dir[0],'',$imagePath));
+				$imageDir = str_replace('//', '/', JPATH_SITE . '/' . str_replace($root_dir[0], '', $imagePath));
 
 				// Validates that is readable
-				if(@is_readable($imageDir) == true)
+				if (is_readable($imageDir) == true)
 				{
 					$img = getimagesize($imageDir);
 					$toAdd = array(
 						'file' => $imagePath,
 						'width' => $img[0],
-						'height' => $img[1]
-					);
+						'height' => $img[1]);
 
 					if (!in_array($toAdd, $files))
 					{
@@ -551,17 +545,15 @@ class plgSystemScriptMerge extends JPlugin
 			$files[] = $file['file'];
 		}
 
-		$app = JFactory::getApplication()
-			->getClientId();
+		$app = JFactory::getApplication();
+		$appId = $app->getClientId();
 		$version = $this->params->get('version', 1);
 		$files = ScriptMergeHelper::encodeList($files);
 		$url = 'index.php?option=com_scriptmerge&format=raw&tmpl=component';
-		$url .= '&type=' . $type . '&app=' . $app . '&version=' . $version . '&files=' . $files;
+		$url .= '&type=' . $type . '&app=' . $appId . '&version=' . $version . '&files=' . $files;
 
 		// Determine the right URL, based on the frontend or backend
-		if (JFactory::getApplication()
-				->isSite() == true
-		)
+		if ($app->isSite() == true)
 		{
 			$url = JRoute::_($url);
 		}
@@ -573,11 +565,10 @@ class plgSystemScriptMerge extends JPlugin
 		// Domainname sharding
 		$domain = ($type == 'js') ? $this->params->get('js_domain') : $this->params->get('css_domain');
 		$url = $this->replaceUrlDomain($url, $domain);
+		$uri = JURI::getInstance();
 
 		// Protocol change
-		if (JURI::getInstance()
-			->isSSL()
-		)
+		if ($uri->isSSL())
 		{
 			$url = str_replace('http://', 'https://', $url);
 		}
@@ -593,7 +584,7 @@ class plgSystemScriptMerge extends JPlugin
 	 * Method to build the CSS / JavaScript cache
 	 *
 	 * @param string $type
-	 * @param array  $matches
+	 * @param array  $list
 	 *
 	 * @return string
 	 */
@@ -603,7 +594,7 @@ class plgSystemScriptMerge extends JPlugin
 		$cacheFile = null;
 
 		// Check for the cache-path
-		if (@is_dir($tmp_path) == false)
+		if (is_dir($tmp_path) == false)
 		{
 			jimport('joomla.filesystem.folder');
 			JFolder::create($tmp_path);
@@ -694,7 +685,7 @@ class plgSystemScriptMerge extends JPlugin
 
 		if (empty($cacheFile))
 		{
-			return;
+			return null;
 		}
 
 		// Construct the minified version
@@ -723,10 +714,10 @@ class plgSystemScriptMerge extends JPlugin
 		$domain = ($type == 'js') ? $this->params->get('js_domain') : $this->params->get('css_domain');
 		$url = $this->replaceUrlDomain($url, $domain);
 
+		$uri = JURI::getInstance();
+
 		// Protocol change
-		if (JURI::getInstance()
-			->isSSL()
-		)
+		if ($uri->isSSL())
 		{
 			$url = str_replace('http://', 'https://', $url);
 		}
@@ -775,16 +766,17 @@ class plgSystemScriptMerge extends JPlugin
 	 */
 	private function replaceUrlDomain($url, $domain)
 	{
+		$uri = JURI::getInstance();
+
 		if (!empty($domain))
 		{
 			$domain = preg_replace('/\/$/', '', $domain);
 			$applyDomain = true;
+			$oldDomain = null;
 
 			if (preg_match('/^(http|https)\:\/\//', $domain, $domainMatch))
 			{
-				if ($domainMatch[1] == 'http' && JURI::getInstance()
-						->isSSL()
-				)
+				if ($domainMatch[1] == 'http' && $uri->isSSL())
 				{
 					$applyDomain = false;
 				}
@@ -796,11 +788,10 @@ class plgSystemScriptMerge extends JPlugin
 			}
 			else
 			{
-				$oldDomain = JURI::getInstance()
-					->toString(array('host'));
+				$oldDomain = $uri->toString(array('host'));
 			}
 
-			if ($applyDomain)
+			if ($applyDomain && !empty($oldDomain))
 			{
 				if (preg_match('/^(http|https)\:\/\//', $url) == false)
 				{
@@ -949,6 +940,8 @@ class plgSystemScriptMerge extends JPlugin
 			// Construct the new filename
 			$newFile = preg_replace('/\.css$/', '.min.css', $file);
 		}
+
+		return $newFile;
 	}
 
 	/**
@@ -1160,7 +1153,7 @@ class plgSystemScriptMerge extends JPlugin
 
 		return true;
 	}
-	
+
 	/**
 	 * Check if this plugin is enabled
 	 *
