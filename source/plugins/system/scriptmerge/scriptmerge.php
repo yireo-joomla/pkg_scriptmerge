@@ -453,6 +453,7 @@ class PlgSystemScriptMerge extends JPlugin
 						'file' => $imagePath,
 						'width' => $img[0],
 						'height' => $img[1]);
+						'html' => null,
 
 					if (!in_array($toAdd, $files))
 					{
