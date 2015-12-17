@@ -435,7 +435,7 @@ class PlgSystemScriptMerge extends JPlugin
 	{
 		$files = array();
 
-		if (preg_match_all('/([a-zA-Z0-9\-\_\/\.]+)\.(png|jpg|jpeg|gif)/i', $body, $matches))
+		if (preg_match_all('/([a-zA-Z0-9\-\_\/\.]+)\.(png|jpg|jpeg|gif)(\"|\')/i', $body, $matches))
 		{
 			preg_match('/https?:(.*)/', JURI::base(), $uri_base);
 			preg_match('/\/([a-zA-Z0-9\-\_\.]+)$/', JPATH_SITE, $root_dir);
@@ -443,7 +443,12 @@ class PlgSystemScriptMerge extends JPlugin
 			foreach ($matches[0] as $imagePath)
 			{
 				$imagePath = str_replace($uri_base[1], '', $imagePath);
-				$imageDir = str_replace('//', '/', JPATH_SITE . '/' . str_replace($root_dir[0], '', $imagePath));
+                $relativeImagePath = $imagePath;
+                if (!empty($root_dir[0])) {
+                    $relativeImagePath = str_replace($root_dir[0], '', $relativeImagePath);
+                }
+
+				$imageDir = str_replace('//', '/', JPATH_SITE . '/' . $relativeImagePath);
 
 				// Validates that is readable
 				if (is_readable($imageDir) == true)
@@ -452,8 +457,9 @@ class PlgSystemScriptMerge extends JPlugin
 					$toAdd = array(
 						'file' => $imagePath,
 						'width' => $img[0],
-						'height' => $img[1]);
-						'html' => null,
+						'height' => $img[1],
+						'html' => null
+                    );
 
 					if (!in_array($toAdd, $files))
 					{

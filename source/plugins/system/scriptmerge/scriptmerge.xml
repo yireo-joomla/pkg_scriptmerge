@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system" method="upgrade">
     <name>PLG_SYSTEM_SCRIPTMERGE</name>
     <author>Yireo</author>
-    <creationDate>October 2015</creationDate>
+    <creationDate>December 2015</creationDate>
     <copyright>Copyright 2015 Yireo.com. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
     <authorEmail>info@yireo.com</authorEmail>
     <authorUrl>www.yireo.com</authorUrl>
-    <version>0.10.4</version>
+    <version>0.10.5</version>
     <description>PLG_SYSTEM_SCRIPTMERGE_DESC</description>
 
     <files>
@@ -35,7 +35,7 @@
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
-                <field name="enable_img" type="radio" class="btn-group" default="1" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_IMG" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_IMG_DESC">
+                <field name="enable_img" type="radio" class="btn-group" default="0" label="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_IMG" description="PLG_SYSTEM_SCRIPTMERGE_FIELD_ENABLE_IMG_DESC">
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
