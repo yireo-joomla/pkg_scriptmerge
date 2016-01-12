@@ -136,6 +136,24 @@ class PlgSystemScriptMerge extends JPlugin
 	}
 
 	/**
+	 * Event recursive_Array_Search
+	 *
+	 * @param string $needle, array $haystack
+	 *
+	 * @return key or false
+	 */
+	public function recursive_Array_Search($needle, $haystack) 
+	{
+		foreach($haystack as $key=>$value) {
+			$current_key=$key;
+			if($needle===$value OR (is_array($value) && $this->recursive_Array_Search($needle, $value) !== false)) {
+				return $current_key;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Event onAfterRender
 	 *
 	 * @param null
@@ -171,10 +189,27 @@ class PlgSystemScriptMerge extends JPlugin
 		{
 			$matches['img'] = $this->getImgMatches($body);
 
-			foreach ($matches['img'] as $img)
-			{
-				$body = str_replace($img['file'], $img['file'] . '" width="' . $img['width'] . '" height="' . $img['height'], $body);
+			//get all image elemets using dom
+			$dom = new DOMDocument();
+			$dom->loadHTML($body);
+			
+			//get all true image elements
+			$imgs = $dom->getElementsByTagName("img");
+			//litereate through images
+			foreach($imgs as $img){
+    			$src = $img->getAttribute('src');
+				//locate the key of the img source in the array
+				$key = $this->recursive_Array_Search( $src, $matches['img'] );
+				//if the possition is found
+				if ( $key !== false && $key !== NULL ) {
+					//replace the key
+					//$img->setAttribute( 'src' , $matches['img'][$key]['file'] ); //not required to tamper the url
+					$img->setAttribute( 'width' , $matches['img'][$key]['width'] );
+					$img->setAttribute( 'height' , $matches['img'][$key]['height'] );
+				}
 			}
+			//save body
+			$body = $dom->saveHTML();
 		}
 
 		// Remove all current links from the document
@@ -435,7 +470,7 @@ class PlgSystemScriptMerge extends JPlugin
 	{
 		$files = array();
 
-		if (preg_match_all('/<img(.*?)src=("|\'|)(.*?)("|\'| )(.*?)>/s', $body, $matches))
+		if (preg_match_all('/<img(.*?)src=("|\'|)(.*?(png|jpg|jpeg|gif))("|\'| )(.*?)>/s', $body, $matches))
 		{
 			preg_match('/https?:(.*)/', JURI::base(), $uri_base);
 			preg_match('/\/([a-zA-Z0-9\-\_\.]+)$/', JPATH_SITE, $root_dir);
