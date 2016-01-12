@@ -435,12 +435,12 @@ class PlgSystemScriptMerge extends JPlugin
 	{
 		$files = array();
 
-		if (preg_match_all('/([a-zA-Z0-9\-\_\/\.]+)\.(png|jpg|jpeg|gif)(\"|\')/i', $body, $matches))
+		if (preg_match_all('/<img(.*?)src=("|\'|)(.*?)("|\'| )(.*?)>/s', $body, $matches))
 		{
 			preg_match('/https?:(.*)/', JURI::base(), $uri_base);
 			preg_match('/\/([a-zA-Z0-9\-\_\.]+)$/', JPATH_SITE, $root_dir);
 
-			foreach ($matches[0] as $imagePath)
+			foreach ($matches[3] as $imagePath)
 			{
 				$imagePath = str_replace($uri_base[1], '', $imagePath);
                 $relativeImagePath = $imagePath;
