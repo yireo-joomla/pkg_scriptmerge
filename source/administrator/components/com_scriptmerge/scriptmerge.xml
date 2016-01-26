@@ -4,10 +4,10 @@
     <author>Yireo</author>
     <authoremail>info@yireo.com</authoremail>
     <authorurl>https://www.yireo.com</authorurl>
-    <creationDate>December 2015</creationDate>
-    <copyright>Copyright 2015 Yireo.com</copyright>
+    <creationDate>January 2016</creationDate>
+    <copyright>Copyright 2016 Yireo.com</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>0.10.4</version>
+    <version>0.10.7</version>
     <description>COM_SCRIPTMERGE_DESC</description>
 
     <files folder="site">
