@@ -435,7 +435,7 @@ class PlgSystemScriptMerge extends JPlugin
 	{
 		$files = array();
 
-		if (preg_match_all('/<img(.*?)src=("|\'|)(.*?)("|\'| )(.*?)>/s', $body, $matches))
+		if (preg_match_all('/<img(.*?)src=("|\'|)(.*?(png|jpg|jpeg|gif))("|\'| )(.*?)>/s', $body, $matches))
 		{
 			preg_match('/https?:(.*)/', JURI::base(), $uri_base);
 			preg_match('/\/([a-zA-Z0-9\-\_\.]+)$/', JPATH_SITE, $root_dir);
