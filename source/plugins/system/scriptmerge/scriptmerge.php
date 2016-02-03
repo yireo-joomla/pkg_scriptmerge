@@ -394,7 +394,7 @@ class PlgSystemScriptMerge extends JPlugin
 				}
 
 				// Only try to match local JS
-				if (preg_match('/\.js(\?\w+=\w+)?$/', $match) && !preg_match('/^http:\/\//', $match))
+				if (preg_match('/\.js*?/', $match) && !preg_match('/^http:\/\//', $match))
 				{
 					// Only include files that can be read
 					$match = preg_replace('/\?(.*)/', '', $match);
