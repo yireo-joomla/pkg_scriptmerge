@@ -3,9 +3,9 @@
  * Joomla! System plugin - ScriptMerge
  *
  * @author    Yireo (info@yireo.com)
- * @copyright Copyright 2015
+ * @copyright Copyright 2016
  * @license   GNU Public License
- * @link      http://www.yireo.com
+ * @link      https://www.yireo.com
  */
 
 // Check to ensure this file is included in Joomla!
@@ -20,12 +20,16 @@ jimport('joomla.plugin.plugin');
 class PlgSystemScriptMerge extends JPlugin
 {
 	/**
+	 * @var JApplicationCms
+	 */
+	protected $app;
+	
+	/**
 	 * Event onAfterRoute
 	 */
 	public function onAfterRoute()
 	{
-		$app = JFactory::getApplication();
-		$jinput = $app->input;
+		$jinput = $this->app->input;
 
 		// Don't do anything for non scriptmerge pages
 		if ($jinput->getCmd('option') != 'com_scriptmerge')
@@ -34,7 +38,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Check for frontend
-		if ($app->isSite() == false)
+		if ($this->app->isSite() == false)
 		{
 			return;
 		}
@@ -131,8 +135,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Close the application
-		$application = JFactory::getApplication();
-		$application->close();
+		$this->app->close();
 	}
 
 	/**
@@ -152,7 +155,6 @@ class PlgSystemScriptMerge extends JPlugin
 
 		// Get the body and fetch a list of files
 		$body = JResponse::getBody();
-		$application = JFactory::getApplication();
 
 		// Fetch all the matches
 		$matches = array();
@@ -187,7 +189,7 @@ class PlgSystemScriptMerge extends JPlugin
 		$body = $this->addMergeUrl($body, $matches);
 
 		// Make sure all MooTools scripts are loaded first
-		if ($application->isAdmin() && $this->params->get('backend') == 1)
+		if ($this->app->isAdmin() && $this->params->get('backend') == 1)
 		{
 			if (preg_match_all('/\<script([^\>]+)mootools(.*).js([^\>]+)\>\<\/script\>/', $body, $matches))
 			{
@@ -345,9 +347,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Add extra scripts in the backend
-		$application = JFactory::getApplication();
-
-		if ($application->isAdmin() && $this->params->get('backend') == 1)
+		if ($this->app->isAdmin() && $this->params->get('backend') == 1)
 		{
 			$excludes[] = 'mootools.js';
 			$excludes[] = 'mootools-core.js';
@@ -576,15 +576,14 @@ class PlgSystemScriptMerge extends JPlugin
 			$files[] = $file['file'];
 		}
 
-		$app = JFactory::getApplication();
-		$appId = $app->getClientId();
+		$appId = $this->app->getClientId();
 		$version = $this->params->get('version', 1);
 		$files = ScriptMergeHelper::encodeList($files);
 		$url = 'index.php?option=com_scriptmerge&format=raw&tmpl=component';
 		$url .= '&type=' . $type . '&app=' . $appId . '&version=' . $version . '&files=' . $files;
 
 		// Determine the right URL, based on the frontend or backend
-		if ($app->isSite() == true)
+		if ($this->app->isSite() == true)
 		{
 			$url = JRoute::_($url);
 		}
@@ -1061,14 +1060,13 @@ class PlgSystemScriptMerge extends JPlugin
 	private function isEnabled()
 	{
 		// Only continue in the right application, if enabled so
-		$application = JFactory::getApplication();
-		$input = $application->input;
+		$input = $this->app->input;
 
-		if ($application->isAdmin() && $this->params->get('backend', 0) == 0)
+		if ($this->app->isAdmin() && $this->params->get('backend', 0) == 0)
 		{
 			return false;
 		}
-		elseif ($application->isSite() && $this->params->get('frontend', 1) == 0)
+		elseif ($this->app->isSite() && $this->params->get('frontend', 1) == 0)
 		{
 			return false;
 		}
@@ -1094,8 +1092,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Exclude for menus
-		$menu = JFactory::getApplication()
-			->getMenu('site');
+		$menu = $this->app->getMenu('site');
 		$current_menuitem = $menu->getActive();
 
 		if (!empty($current_menuitem))
