@@ -49,12 +49,18 @@ class ScriptMergeHelper
 			return null;
 		}
 
+        if (substr($buffer, 0, 5) === '<?php')
+        {
+            return null;
+        }
+
 		// Initialize the basepath
 		$basefile = self::getFileUrl($file, false);
 
 		// If compression is enabled
 		$application = JFactory::getApplication();
-		$compress_js = self::getParams()->get('compress_js');
+		$compress_js = self::getParams()
+			->get('compress_js');
 
 		if ($application->isSite() && !empty($compress_js))
 		{
@@ -78,7 +84,9 @@ class ScriptMergeHelper
 			}
 
 			// Append the filename to the JS-code
-			if (self::getParams()->get('use_comments', 1))
+			if (self::getParams()
+				->get('use_comments', 1)
+			)
 			{
 				$start = "/* [scriptmerge/start] JavaScript file: $basefile */\n\n";
 				$end = "/* [scriptmerge/end] JavaScript file: $basefile */\n\n";
@@ -106,7 +114,9 @@ class ScriptMergeHelper
 
 			// Append the filename to the JS-code
 
-			if (self::getParams()->get('use_comments', 1))
+			if (self::getParams()
+				->get('use_comments', 1)
+			)
 			{
 				$start = "/* [scriptmerge/start] Uncompressed JavaScript file: $basefile */\n\n";
 				$end = "/* [scriptmerge/end] Uncompressed JavaScript file: $basefile */\n\n";
@@ -134,7 +144,6 @@ class ScriptMergeHelper
 	{
 		return $buffer;
 	}
-
 
 	/**
 	 * Method to return the output of a CSS file
@@ -192,8 +201,7 @@ class ScriptMergeHelper
 			"`^\/\*(.+?)\*\/`ism" => "",
 			"`([\n\A;]+)\/\*(.+?)\*\/`ism" => "$1",
 			"`([\n\A;\s]+)//(.+?)[\n\r]`ism" => "$1\n",
-			"`(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+`ism" => "\n"
-		);
+			"`(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+`ism" => "\n");
 		$rawBuffer = preg_replace(array_keys($regex), $regex, $buffer);
 
 		// Initialize the basepath
@@ -202,7 +210,9 @@ class ScriptMergeHelper
 		// Follow all @import rules
 		$imports = array();
 
-		if (self::getParams()->get('follow_imports', 1) == 1)
+		if (self::getParams()
+				->get('follow_imports', 1) == 1
+		)
 		{
 			if (preg_match_all('/@import\ (.*);/i', $rawBuffer, $matches))
 			{
@@ -233,7 +243,9 @@ class ScriptMergeHelper
 
 					if (!empty($importBuffer))
 					{
-						if (self::getParams()->get('use_comments', 1))
+						if (self::getParams()
+							->get('use_comments', 1)
+						)
 						{
 							$buffer .= "\n/* [scriptmerge/notice] CSS import of $importUrl */\n\n" . $buffer;
 						}
@@ -341,7 +353,8 @@ class ScriptMergeHelper
 		}
 
 		// If compression is enabled
-		$compress_css = self::getParams()->get('compress_css', 0);
+		$compress_css = self::getParams()
+			->get('compress_css', 0);
 
 		if ($compress_css > 0)
 		{
@@ -380,7 +393,9 @@ class ScriptMergeHelper
 		else
 		{
 			// Append the filename to the CSS-code
-			if (self::getParams()->get('use_comments', 1))
+			if (self::getParams()
+				->get('use_comments', 1)
+			)
 			{
 				$start = "/* [scriptmerge/start] CSS-stylesheet: $basefile */\n\n";
 				$end = "/* [scriptmerge/end] CSS-stylesheet: $basefile */\n\n";
@@ -422,7 +437,9 @@ class ScriptMergeHelper
 	static public function getWebpImage($imageUrl)
 	{
 		// Check if WebP support is enabled
-		if (self::getParams()->get('use_webp', 0) == 0)
+		if (self::getParams()
+				->get('use_webp', 0) == 0
+		)
 		{
 			return false;
 		}
@@ -451,7 +468,8 @@ class ScriptMergeHelper
 		}
 
 		// Check for the cwebp binary
-		$cwebp = self::getParams()->get('cwebp', '/usr/local/bin/cwebp');
+		$cwebp = self::getParams()
+			->get('cwebp', '/usr/local/bin/cwebp');
 
 		if (empty($cwebp) || file_exists($cwebp) == false)
 		{
@@ -534,7 +552,8 @@ class ScriptMergeHelper
 			return null;
 		}
 
-		$image_domain = self::getParams()->get('image_domain');
+		$image_domain = self::getParams()
+			->get('image_domain');
 
 		if (!empty($image_domain))
 		{
@@ -542,7 +561,9 @@ class ScriptMergeHelper
 
 			if (preg_match('/^(http|https)\:\/\//', $image_domain, $image_domain_match))
 			{
-				if ($image_domain_match[1] == 'http' && JURI::getInstance()->isSSL())
+				if ($image_domain_match[1] == 'http' && JURI::getInstance()
+						->isSSL()
+				)
 				{
 					$image_url_replace = false;
 				}
@@ -556,13 +577,17 @@ class ScriptMergeHelper
 		}
 
 		// Disable further processing
-		if (self::getParams()->get('data_uris', 0) == 0)
+		if (self::getParams()
+				->get('data_uris', 0) == 0
+		)
 		{
 			return self::getFileUrl($file);
 		}
 
 		// Check the file-length
-		if (filesize($file) > self::getParams()->get('data_uris_filesize', 2000))
+		if (filesize($file) > self::getParams()
+				->get('data_uris_filesize', 2000)
+		)
 		{
 			return null;
 		}
@@ -681,7 +706,7 @@ class ScriptMergeHelper
 	 * Get a valid file URL
 	 *
 	 * @param string $path
-	 * @param bool $include_url
+	 * @param bool   $include_url
 	 *
 	 * @return string
 	 */
@@ -694,7 +719,9 @@ class ScriptMergeHelper
 			$path = JURI::root() . $path;
 		}
 
-		if (JURI::getInstance()->isSSL())
+		if (JURI::getInstance()
+			->isSSL()
+		)
 		{
 			$path = str_replace('http://', 'https://', $path);
 		}
@@ -753,7 +780,8 @@ class ScriptMergeHelper
 		$file = str_replace(JURI::root(), '', $file);
 
 		// Determine the application path
-		$app = JRequest::getInt('app', JFactory::getApplication()->getClientId());
+		$app = JRequest::getInt('app', JFactory::getApplication()
+			->getClientId());
 
 		if ($app == 1)
 		{
@@ -801,7 +829,9 @@ class ScriptMergeHelper
 		}
 
 		// Detect the right application-path
-		if (JFactory::getApplication()->isAdmin())
+		if (JFactory::getApplication()
+			->isAdmin()
+		)
 		{
 			if (strstr($file, JPATH_ADMINISTRATOR) == false && @is_file(JPATH_ADMINISTRATOR . '/' . $file))
 			{
