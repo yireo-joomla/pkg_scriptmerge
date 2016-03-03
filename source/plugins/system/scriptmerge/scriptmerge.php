@@ -86,15 +86,15 @@ class PlgSystemScriptMerge extends JPlugin
 			}
 		}
 
-		// Clean up CSS-code
 		if ($type == 'css')
 		{
+		    // Clean up CSS-code
 			$buffer = ScriptMergeHelper::cleanCssContent($buffer);
 
-			// Clean up JS-code
 		}
 		else
 		{
+		    // Clean up JS-code
 			$buffer = ScriptMergeHelper::cleanJsContent($buffer);
 		}
 
@@ -260,6 +260,11 @@ class PlgSystemScriptMerge extends JPlugin
 					continue;
 				}
 
+				if (preg_match('/\.php\?(.*)/', $match))
+				{
+					continue;
+				}
+
 				// Only try to match local CSS
 				$match = str_replace(JURI::base(), '', $match);
 				$match = preg_replace('/^' . str_replace('/', '\/', JURI::base(true)) . '/', '', $match);
@@ -368,6 +373,11 @@ class PlgSystemScriptMerge extends JPlugin
 					}
 				}
 
+				if (preg_match('/\.php\?(.*)/', $match))
+				{
+					continue;
+				}
+
 				// Match files that should be excluded
 				if (!empty($excludes) && !empty($match))
 				{
@@ -443,10 +453,12 @@ class PlgSystemScriptMerge extends JPlugin
 			foreach ($matches[3] as $imagePath)
 			{
 				$imagePath = str_replace($uri_base[1], '', $imagePath);
-                $relativeImagePath = $imagePath;
-                if (!empty($root_dir[0])) {
-                    $relativeImagePath = str_replace($root_dir[0], '', $relativeImagePath);
-                }
+				$relativeImagePath = $imagePath;
+
+				if (!empty($root_dir[0]))
+				{
+					$relativeImagePath = str_replace($root_dir[0], '', $relativeImagePath);
+				}
 
 				$imageDir = str_replace('//', '/', JPATH_SITE . '/' . $relativeImagePath);
 
@@ -458,8 +470,7 @@ class PlgSystemScriptMerge extends JPlugin
 						'file' => $imagePath,
 						'width' => $img[0],
 						'height' => $img[1],
-						'html' => null
-                    );
+						'html' => null);
 
 					if (!in_array($toAdd, $files))
 					{
