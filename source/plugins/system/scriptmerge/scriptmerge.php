@@ -264,7 +264,7 @@ class PlgSystemScriptMerge extends JPlugin
 				$match = str_replace(JURI::base(), '', $match);
 				$match = preg_replace('/^' . str_replace('/', '\/', JURI::base(true)) . '/', '', $match);
 
-				if (preg_match('/\.css(\?\w+=\w+)?$/', $match) && !preg_match('/^http:\/\//', $match))
+				if (!preg_match('/^(?:https?:)?\/\//', $match) && preg_match('/\.css(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
 				{
 					// Only include files that can be read
 					$file = preg_replace('/\?(.*)/', '', $match);
@@ -394,7 +394,7 @@ class PlgSystemScriptMerge extends JPlugin
 				}
 
 				// Only try to match local JS
-				if (preg_match('/\.js(\?\w+=\w+)?$/', $match) && !preg_match('/^http:\/\//', $match))
+				if (!preg_match('/^(?:https?:)?\/\//', $match) && preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
 				{
 					// Only include files that can be read
 					$match = preg_replace('/\?(.*)/', '', $match);
