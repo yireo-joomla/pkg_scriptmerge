@@ -24,7 +24,7 @@ class PlgSystemScriptMerge extends JPlugin
 	 */
 	public function onAfterRoute()
 	{
-		$app = JFactory::getApplication();
+		$app    = JFactory::getApplication();
 		$jinput = $app->input;
 
 		// Don't do anything for non scriptmerge pages
@@ -39,24 +39,31 @@ class PlgSystemScriptMerge extends JPlugin
 			return;
 		}
 
+		$type = $jinput->getString('type');
+
+		if (!in_array($type, array('css', 'js')))
+		{
+			return;
+		}
+
 		// Require the helper
 		require_once JPATH_SITE . '/components/com_scriptmerge/helpers/helper.php';
 		$helper = new ScriptMergeHelper;
 
 		// Send the content-type header
-		$type = $jinput->getString('type');
+		switch ($type)
+		{
+			case 'css':
+				header('Content-Type: text/css');
+				break;
 
-		if ($type == 'css')
-		{
-			header('Content-Type: text/css');
-		}
-		else
-		{
-			header('Content-Type: application/javascript');
+			case 'js':
+				header('Content-Type: application/javascript');
+				break;
 		}
 
 		// Read the files parameter
-		$files = $jinput->getString('files');
+		$files  = $jinput->getString('files');
 		$buffer = null;
 
 		if (!empty($files))
@@ -65,49 +72,45 @@ class PlgSystemScriptMerge extends JPlugin
 
 			foreach ($files as $file)
 			{
-				if ($type == 'css')
+				if (!preg_match('/\.' . $type . '$/', $file))
 				{
-					if (!preg_match('/\.css$/', $file))
-					{
-						continue;
-					}
-
-					$buffer .= $helper->getCssContent($file);
+					continue;
 				}
-				else
-				{
-					if (!preg_match('/\.js$/', $file))
-					{
-						continue;
-					}
 
-					$buffer .= $helper->getJsContent($file);
+				switch ($type)
+				{
+					case 'css':
+						$buffer .= $helper->getCssContent($file);
+						break;
+
+					case 'js':
+						$buffer .= $helper->getJsContent($file);
+						break;
 				}
 			}
 		}
 
-		if ($type == 'css')
+		// Clean up CSS-code
+		switch ($type)
 		{
-		    // Clean up CSS-code
-			$buffer = ScriptMergeHelper::cleanCssContent($buffer);
+			case 'css':
+				$buffer = ScriptMergeHelper::cleanCssContent($buffer);
+				break;
 
-		}
-		else
-		{
-		    // Clean up JS-code
-			$buffer = ScriptMergeHelper::cleanJsContent($buffer);
+			case 'js':
+				$buffer = ScriptMergeHelper::cleanJsContent($buffer);
+				break;
 		}
 
 		// Construct the expiration time
 		$helperParams = $helper->getParams();
-		$expires = (int) ($helperParams->get('expiration', 30) * 60);
+		$expires      = (int) ($helperParams->get('expiration', 30) * 60);
 
 		// Set the expiry in the future
 		if ($expires > 0)
 		{
 			header('Cache-Control: public, max-age=' . $expires);
 			header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $expires));
-
 			// Set the expiry in the past
 		}
 		else
@@ -152,7 +155,6 @@ class PlgSystemScriptMerge extends JPlugin
 
 		// Get the body and fetch a list of files
 		$body = JResponse::getBody();
-		$application = JFactory::getApplication();
 
 		// Fetch all the matches
 		$matches = array();
@@ -187,23 +189,39 @@ class PlgSystemScriptMerge extends JPlugin
 		$body = $this->addMergeUrl($body, $matches);
 
 		// Make sure all MooTools scripts are loaded first
-		if ($application->isAdmin() && $this->params->get('backend') == 1)
-		{
-			if (preg_match_all('/\<script([^\>]+)mootools(.*).js([^\>]+)\>\<\/script\>/', $body, $matches))
-			{
-				$scripts = null;
-
-				foreach ($matches[0] as $match)
-				{
-					$body = str_replace($match, '', $body);
-					$scripts .= $match . "\n";
-				}
-
-				$body = str_replace('<head>', '<head>' . $scripts, $body);
-			}
-		}
+		$body = $this->moveMootools($body);
 
 		JResponse::setBody($body);
+	}
+
+	/**
+	 * Method to make sure all MooTools scripts are loaded first
+	 *
+	 * @param string $body
+	 *
+	 * @return string
+	 */
+	private function moveMootools(&$body)
+	{
+		if (!JFactory::getApplication()->isAdmin() || $this->params->get('backend') != 1)
+		{
+			return $body;
+		}
+
+		if (!preg_match_all('/\<script([^\>]+)mootools(.*).js([^\>]+)\>\<\/script\>/', $body, $matches))
+		{
+			return $body;
+		}
+
+		$scripts = null;
+
+		foreach ($matches[0] as $match)
+		{
+			$body = str_replace($match, '', $body);
+			$scripts .= $match . "\n";
+		}
+
+		return str_replace('<head>', '<head>' . $scripts, $body);
 	}
 
 	/**
@@ -224,97 +242,94 @@ class PlgSystemScriptMerge extends JPlugin
 		// Parse all the matched entries
 		$files = array();
 
-		if (isset($matches[3]))
+		if (!isset($matches[3]))
 		{
-			// Get the exclude-matches
-			$exclude_css = explode(',', $this->params->get('exclude_css'));
+			return $files;
+		}
 
+		// Get the exclude-matches
+		$exclude_css = explode(',', $this->params->get('exclude_css'));
+
+		if (!empty($exclude_css))
+		{
+			foreach ($exclude_css as $i => $e)
+			{
+				$e = trim($e);
+
+				if (empty($e))
+				{
+					unset($exclude_css[$i]);
+				}
+				else
+				{
+					$exclude_css[$i] = $e;
+				}
+			}
+		}
+
+		// Loop through the rules
+		foreach ($matches[3] as $index => $match)
+		{
+			// Skip certain entries
+			if (stripos($matches[0][$index], 'stylesheet') == false && stripos($matches[0][$index], 'css') == false)
+			{
+				continue;
+			}
+
+			if (stripos($matches[0][$index], 'media="print"'))
+			{
+				continue;
+			}
+
+			// Only try to match local CSS
+			$match = str_replace(JURI::base(), '', $match);
+			$match = preg_replace('/^' . str_replace('/', '\/', JURI::base(true)) . '/', '', $match);
+
+			if (preg_match('/^(?:https?:)?\/\//', $match))
+			{
+				continue;
+			}
+
+			if (!preg_match('/\.css(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
+			{
+				continue;
+			}
+
+			// Only include files that can be read
+			$file = preg_replace('/\?(.*)/', '', $match);
+
+			// Check for excludes
 			if (!empty($exclude_css))
 			{
-				foreach ($exclude_css as $i => $e)
-				{
-					$e = trim($e);
+				$match = false;
 
-					if (empty($e))
+				foreach ($exclude_css as $exclude)
+				{
+					if (strstr($file, $exclude))
 					{
-						unset($exclude_css[$i]);
+						$match = true;
+						break;
 					}
-					else
-					{
-						$exclude_css[$i] = $e;
-					}
+				}
+
+				if ($match == true)
+				{
+					continue;
 				}
 			}
 
-			// Loop through the rules
-			foreach ($matches[3] as $index => $match)
+			// Try to determine the path to this file
+			$filepath = ScriptMergeHelper::getFilePath($file);
+
+			if (empty($filepath))
 			{
-				// Skip certain entries
-				if (stripos($matches[0][$index], 'stylesheet') == false && stripos($matches[0][$index], 'css') == false)
-				{
-					continue;
-				}
-
-				if (stripos($matches[0][$index], 'media="print"'))
-				{
-					continue;
-				}
-
-				if (preg_match('/\.php\?(.*)/', $match))
-				{
-					continue;
-				}
-
-				// Only try to match local CSS
-				$match = str_replace(JURI::base(), '', $match);
-				$match = preg_replace('/^' . str_replace('/', '\/', JURI::base(true)) . '/', '', $match);
-
-				if (preg_match('/^(?:https?:)?\/\//', $match))
-				{
-					continue;
-				}
-			
-				if (!preg_match('/\.css(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
-				{
-					continue;
-				}
-
-				// Only include files that can be read
-				$file = preg_replace('/\?(.*)/', '', $match);
-
-				// Check for excludes
-				if (!empty($exclude_css))
-				{
-					$match = false;
-
-					foreach ($exclude_css as $exclude)
-					{
-						if (strstr($file, $exclude))
-						{
-							$match = true;
-							break;
-						}
-					}
-
-					if ($match == true)
-					{
-						continue;
-					}
-				}
-
-				// Try to determine the path to this file
-				$filepath = ScriptMergeHelper::getFilePath($file);
-
-				if (empty($filepath))
-				{
-					continue;
-				}
-
-				$files[] = array(
-					'remote' => 0,
-					'file' => $filepath,
-					'html' => $matches[0][$index],);
+				continue;
 			}
+
+			$files[] = array(
+				'remote' => 0,
+				'file'   => $filepath,
+				'html'   => $matches[0][$index],);
 		}
 
 		return $files;
@@ -360,88 +375,85 @@ class PlgSystemScriptMerge extends JPlugin
 		// Parse all the matched entries
 		$files = array();
 
-		if (isset($matches[2]))
+		if (!isset($matches[2]))
 		{
-			foreach ($matches[2] as $index => $match)
+			return $files;
+		}
+
+		foreach ($matches[2] as $index => $match)
+		{
+			// Only try to match local JavaScript
+			$match = str_replace(JURI::base(), '', $match);
+			$match = preg_replace('/^' . str_replace('/', '\/', JURI::base(true)) . '/', '', $match);
+
+			if (empty($match))
 			{
-				// Only try to match local JavaScript
-				$match = str_replace(JURI::base(), '', $match);
-				$match = preg_replace('/^' . str_replace('/', '\/', JURI::base(true)) . '/', '', $match);
-
-				if (empty($match))
-				{
-					continue;
-				}
-
-				// Skip already compressed files
-				if ($this->params->get('skip_compressed', 0) == 1)
-				{
-					if (preg_match('/\.(pack|min)\.js/', $match))
-					{
-						continue;
-					}
-				}
-
-				if (preg_match('/\.php\?(.*)/', $match))
-				{
-					continue;
-				}
-
-				// Match files that should be excluded
-				if (!empty($excludes) && !empty($match))
-				{
-					$e = false;
-
-					foreach ($excludes as $exclude)
-					{
-						if (empty($match) || empty($exclude))
-						{
-							continue;
-						}
-
-						if (strstr($match, $exclude) || stripos($match, $exclude))
-						{
-							$e = true;
-							break;
-						}
-					}
-
-					if ($e == true)
-					{
-						continue;
-					}
-				}
-
-				// Only try to match local JS
-				if (preg_match('/^(?:https?:)?\/\//', $match))
-				{
-					continue;
-				}
-			
-				if (!preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
-				{
-					continue;
-				}
-
-				// Only include files that can be read
-				$match = preg_replace('/\?(.*)/', '', $match);
-				$filepath = ScriptMergeHelper::getFilePath($match);
-
-				if (empty($filepath))
-				{
-					continue;
-				}
-
-				if ($this->params->get('remove_mootools') == 1 && stristr($filepath, 'mootools'))
-				{
-					continue;
-				}
-
-				$files[] = array(
-					'remote' => 0,
-					'file' => $filepath,
-					'html' => $matches[0][$index],);
+				continue;
 			}
+
+			// Skip already compressed files
+			if ($this->params->get('skip_compressed', 0) == 1)
+			{
+				if (preg_match('/\.(pack|min)\.js/', $match))
+				{
+					continue;
+				}
+			}
+
+			// Match files that should be excluded
+			if (!empty($excludes) && !empty($match))
+			{
+				$e = false;
+
+				foreach ($excludes as $exclude)
+				{
+					if (empty($match) || empty($exclude))
+					{
+						continue;
+					}
+
+					if (strstr($match, $exclude) || stripos($match, $exclude))
+					{
+						$e = true;
+						break;
+					}
+				}
+
+				if ($e == true)
+				{
+					continue;
+				}
+			}
+
+			// Only try to match local JS
+			if (preg_match('/^(?:https?:)?\/\//', $match))
+			{
+				continue;
+			}
+
+			if (!preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
+			{
+				continue;
+			}
+
+			// Only include files that can be read
+			$match    = preg_replace('/\?(.*)/', '', $match);
+			$filepath = ScriptMergeHelper::getFilePath($match);
+
+			if (empty($filepath))
+			{
+				continue;
+			}
+
+			if ($this->params->get('remove_mootools') == 1 && stristr($filepath, 'mootools'))
+			{
+				continue;
+			}
+
+			$files[] = array(
+				'remote' => 0,
+				'file'   => $filepath,
+				'html'   => $matches[0][$index],);
 		}
 
 		return $files;
@@ -465,9 +477,8 @@ class PlgSystemScriptMerge extends JPlugin
 
 			foreach ($matches[3] as $imagePath)
 			{
-				$imagePath = str_replace($uri_base[1], '', $imagePath);
+				$imagePath         = str_replace($uri_base[1], '', $imagePath);
 				$relativeImagePath = $imagePath;
-
 				if (!empty($root_dir[0]))
 				{
 					$relativeImagePath = str_replace($root_dir[0], '', $relativeImagePath);
@@ -478,12 +489,13 @@ class PlgSystemScriptMerge extends JPlugin
 				// Validates that is readable
 				if (is_readable($imageDir) == true)
 				{
-					$img = getimagesize($imageDir);
+					$img   = getimagesize($imageDir);
 					$toAdd = array(
-						'file' => $imagePath,
-						'width' => $img[0],
+						'file'   => $imagePath,
+						'width'  => $img[0],
 						'height' => $img[1],
-						'html' => null);
+						'html'   => null,
+					);
 
 					if (!in_array($toAdd, $files))
 					{
@@ -515,7 +527,6 @@ class PlgSystemScriptMerge extends JPlugin
 				if ($this->params->get('merge_type') == 'files')
 				{
 					$url = $this->buildMergeUrl($type, $list);
-
 					// Create an unique signature for this filelist
 				}
 				else
@@ -531,8 +542,8 @@ class PlgSystemScriptMerge extends JPlugin
 				}
 				else
 				{
-					$async = ($this->params->get('async_merged', 0) == 1) ? ' async' : '';
-					$tag = '<script src="' . $url . '"' . $async . ' type="text/javascript"></script>';
+					$async        = ($this->params->get('async_merged', 0) == 1) ? ' async' : '';
+					$tag          = '<script src="' . $url . '"' . $async . ' type="text/javascript"></script>';
 					$tag_position = $this->params->get('js_position');
 				}
 
@@ -576,11 +587,11 @@ class PlgSystemScriptMerge extends JPlugin
 			$files[] = $file['file'];
 		}
 
-		$app = JFactory::getApplication();
-		$appId = $app->getClientId();
+		$app     = JFactory::getApplication();
+		$appId   = $app->getClientId();
 		$version = $this->params->get('version', 1);
-		$files = ScriptMergeHelper::encodeList($files);
-		$url = 'index.php?option=com_scriptmerge&format=raw&tmpl=component';
+		$files   = ScriptMergeHelper::encodeList($files);
+		$url     = 'index.php?option=com_scriptmerge&format=raw&tmpl=component';
 		$url .= '&type=' . $type . '&app=' . $appId . '&version=' . $version . '&files=' . $files;
 
 		// Determine the right URL, based on the frontend or backend
@@ -595,8 +606,8 @@ class PlgSystemScriptMerge extends JPlugin
 
 		// Domainname sharding
 		$domain = ($type == 'js') ? $this->params->get('js_domain') : $this->params->get('css_domain');
-		$url = $this->replaceUrlDomain($url, $domain);
-		$uri = JURI::getInstance();
+		$url    = $this->replaceUrlDomain($url, $domain);
+		$uri    = JURI::getInstance();
 
 		// Protocol change
 		if ($uri->isSSL())
@@ -621,7 +632,7 @@ class PlgSystemScriptMerge extends JPlugin
 	 */
 	private function buildCacheUrl($type, $list = array())
 	{
-		$tmp_path = JPATH_SITE . '/cache/plg_scriptmerge/';
+		$tmp_path  = JPATH_SITE . '/cache/plg_scriptmerge/';
 		$cacheFile = null;
 
 		// Check for the cache-path
@@ -633,9 +644,9 @@ class PlgSystemScriptMerge extends JPlugin
 
 		if (!empty($list))
 		{
-			$cacheId = $this->getHashFromList($list);
-			$cacheFile = $cacheId . '.' . $type;
-			$cachePath = $tmp_path . '/' . $cacheFile;
+			$cacheId         = $this->getHashFromList($list);
+			$cacheFile       = $cacheId . '.' . $type;
+			$cachePath       = $tmp_path . '/' . $cacheFile;
 			$cacheExpireFile = $cachePath . '_expire';
 
 			$hasExpired = false;
@@ -680,7 +691,6 @@ class PlgSystemScriptMerge extends JPlugin
 						if ($type == 'css')
 						{
 							$buffer .= ScriptMergeHelper::getCssContent($file['file']);
-
 							// JS-code
 						}
 						else
@@ -694,7 +704,6 @@ class PlgSystemScriptMerge extends JPlugin
 				if ($type == 'css')
 				{
 					$buffer = ScriptMergeHelper::cleanCssContent($buffer);
-
 					// Clean up JS-code
 				}
 				else
@@ -733,7 +742,6 @@ class PlgSystemScriptMerge extends JPlugin
 		if (file_exists(JPATH_SITE . '/cache/plg_scriptmerge/' . $minifiedFile))
 		{
 			$url = JURI::root() . 'cache/plg_scriptmerge/' . $minifiedFile;
-
 			// Return the cache-file itself
 		}
 		else
@@ -743,7 +751,7 @@ class PlgSystemScriptMerge extends JPlugin
 
 		// Domainname sharding
 		$domain = ($type == 'js') ? $this->params->get('js_domain') : $this->params->get('css_domain');
-		$url = $this->replaceUrlDomain($url, $domain);
+		$url    = $this->replaceUrlDomain($url, $domain);
 
 		$uri = JURI::getInstance();
 
@@ -801,9 +809,9 @@ class PlgSystemScriptMerge extends JPlugin
 
 		if (!empty($domain))
 		{
-			$domain = preg_replace('/\/$/', '', $domain);
+			$domain      = preg_replace('/\/$/', '', $domain);
 			$applyDomain = true;
-			$oldDomain = null;
+			$oldDomain   = null;
 
 			if (preg_match('/^(http|https)\:\/\//', $domain, $domainMatch))
 			{
@@ -907,8 +915,8 @@ class PlgSystemScriptMerge extends JPlugin
 		{
 			foreach ($matches[2] as $index => $match)
 			{
-				$match = preg_replace('/([\'\"\ ]+)/', '', $match);
-				$path = ScriptMergeHelper::getFilePath($match);
+				$match   = preg_replace('/([\'\"\ ]+)/', '', $match);
+				$path    = ScriptMergeHelper::getFilePath($match);
 				$content = ScriptMergeHelper::getImageUrl($path);
 
 				if (!empty($content))
@@ -922,8 +930,8 @@ class PlgSystemScriptMerge extends JPlugin
 		{
 			foreach ($matches[1] as $index => $match)
 			{
-				$match = preg_replace('/([\'\"\ ]+)/', '', $match);
-				$path = ScriptMergeHelper::getFilePath($match);
+				$match   = preg_replace('/([\'\"\ ]+)/', '', $match);
+				$path    = ScriptMergeHelper::getFilePath($match);
 				$content = ScriptMergeHelper::getImageUrl($path);
 
 				if (!empty($content))
@@ -937,8 +945,8 @@ class PlgSystemScriptMerge extends JPlugin
 		{
 			foreach ($matches[1] as $index => $match)
 			{
-				$match = preg_replace('/([\'\"\ ]+)/', '', $match);
-				$path = ScriptMergeHelper::getFilePath($match);
+				$match   = preg_replace('/([\'\"\ ]+)/', '', $match);
+				$path    = ScriptMergeHelper::getFilePath($match);
 				$content = ScriptMergeHelper::getImageUrl($path);
 
 				if (!empty($content))
@@ -961,26 +969,26 @@ class PlgSystemScriptMerge extends JPlugin
 	 */
 	private function createMinified($type, $file)
 	{
-		if ($type == 'js')
+		switch ($type)
 		{
-			// Construct the new filename
-			$newFile = preg_replace('/\.js$/', '.min.js', $file);
+			case 'css':
+				// Construct the new filename
+				return preg_replace('/\.css$/', '.min.css', $file);
 
-			// Try to use JSMIN
-			$jsmin = $this->params->get('jsmin');
+			case 'js':
+				// Construct the new filename
+				$newFile = preg_replace('/\.js$/', '.min.js', $file);
 
-			if (!empty($jsmin) && $this->params->get('use_jsmin', 0) == 1)
-			{
-				exec("$jsmin < $file > $newFile");
-			}
+				// Try to use JSMIN
+				$jsmin = $this->params->get('jsmin');
+
+				if (!empty($jsmin) && $this->params->get('use_jsmin', 0) == 1)
+				{
+					exec("$jsmin < $file > $newFile");
+				}
+
+				return $newFile;
 		}
-		else
-		{
-			// Construct the new filename
-			$newFile = preg_replace('/\.css$/', '.min.css', $file);
-		}
-
-		return $newFile;
 	}
 
 	/**
@@ -994,14 +1002,9 @@ class PlgSystemScriptMerge extends JPlugin
 	{
 		$config = JFactory::getConfig();
 
-		if (method_exists($config, 'getValue'))
-		{
-			$lifetime = (int) $config->getValue('config.lifetime');
-		}
-		else
-		{
-			$lifetime = (int) $config->get('config.lifetime');
-		}
+		$lifetime = method_exists($config, 'getValue')
+			? (int) $config->getValue('config.lifetime')
+			: (int) $config->get('config.lifetime');
 
 		if (empty($lifetime) || $lifetime < 120)
 		{
@@ -1062,18 +1065,19 @@ class PlgSystemScriptMerge extends JPlugin
 	{
 		// Only continue in the right application, if enabled so
 		$application = JFactory::getApplication();
-		$input = $application->input;
+		$input       = $application->input;
 
 		if ($application->isAdmin() && $this->params->get('backend', 0) == 0)
 		{
 			return false;
 		}
-		elseif ($application->isSite() && $this->params->get('frontend', 1) == 0)
+
+		if ($application->isSite() && $this->params->get('frontend', 1) == 0)
 		{
 			return false;
 		}
 
-		// Dont do anything for the ScriptMerge component and the Plugin Manager
+		// Don't do anything for the ScriptMerge component and the Plugin Manager
 		if (in_array($input->getCmd('option'), array('com_plugins', 'com_scriptmerge')))
 		{
 			return false;
@@ -1094,7 +1098,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Exclude for menus
-		$menu = JFactory::getApplication()
+		$menu             = JFactory::getApplication()
 			->getMenu('site');
 		$current_menuitem = $menu->getActive();
 
@@ -1150,14 +1154,16 @@ class PlgSystemScriptMerge extends JPlugin
 		// Exclude user-agents
 		$exclude_css_useragents = $this->getArrayFromParam('exclude_css_useragents');
 
-		if (!empty($exclude_css_useragents) && !empty($_SERVER['HTTP_USER_AGENT']))
+		if (empty($exclude_css_useragents) || empty($_SERVER['HTTP_USER_AGENT']))
 		{
-			foreach ($exclude_css_useragents as $exclude_css_useragent)
+			return true;
+		}
+
+		foreach ($exclude_css_useragents as $exclude_css_useragent)
+		{
+			if (stristr($_SERVER['HTTP_USER_AGENT'], $exclude_css_useragent))
 			{
-				if (stristr($_SERVER['HTTP_USER_AGENT'], $exclude_css_useragent))
-				{
-					return false;
-				}
+				return false;
 			}
 		}
 
@@ -1179,14 +1185,16 @@ class PlgSystemScriptMerge extends JPlugin
 		// Exclude user-agents
 		$exclude_js_useragents = $this->getArrayFromParam('exclude_js_useragents');
 
-		if (!empty($exclude_js_useragents) && !empty($_SERVER['HTTP_USER_AGENT']))
+		if (empty($exclude_js_useragents) || empty($_SERVER['HTTP_USER_AGENT']))
 		{
-			foreach ($exclude_js_useragents as $exclude_js_useragent)
+			return true;
+		}
+
+		foreach ($exclude_js_useragents as $exclude_js_useragent)
+		{
+			if (stristr($_SERVER['HTTP_USER_AGENT'], $exclude_js_useragent))
 			{
-				if (stristr($_SERVER['HTTP_USER_AGENT'], $exclude_js_useragent))
-				{
-					return false;
-				}
+				return false;
 			}
 		}
 
@@ -1218,13 +1226,11 @@ class PlgSystemScriptMerge extends JPlugin
 		$includeCss = $this->params->get('include_css');
 		$includeCss = trim($includeCss);
 
-		if (!empty($includeCss))
+		if (empty($includeCss))
 		{
-			$tag = "\n<style>" . $includeCss . "</style>";
-
-			return $tag;
+			return '';
 		}
 
-		return '';
+		return "\n<style>" . $includeCss . "</style>";
 	}
 }
