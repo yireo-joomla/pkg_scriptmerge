@@ -25,6 +25,11 @@ class PlgSystemScriptMerge extends JPlugin
 	protected $app;
 
 	/**
+	 * @var JInput
+	 */
+	protected $input;
+
+	/**
 	 * @var string
 	 */
 	protected $helperFile;
@@ -39,11 +44,13 @@ class PlgSystemScriptMerge extends JPlugin
 	 */
 	public function __construct(&$subject, $config = array())
 	{
+		// Set the helper file and include the helper class
 		$this->helperFile = JPATH_SITE . '/components/com_scriptmerge/helpers/helper.php';
 		$this->includeHelper();
 		
 		$rt = parent::__construct($subject, $config);
 
+		/** @var JInput input */
 		$this->input = $this->app->input;
 		
 		return $rt;
@@ -72,17 +79,19 @@ class PlgSystemScriptMerge extends JPlugin
 			return;
 		}
 
-		// Send the content-type header
-		$type = $this->input->getString('type');
+		// Output CSS or JavaScript
+		$this->printBuffer();
+	}
 
-		if ($type == 'css')
-		{
-			header('Content-Type: text/css');
-		}
-		else
-		{
-			header('Content-Type: application/javascript');
-		}
+	/**
+	 * Output CSS or JavaScript when requested
+	 */
+	protected function printBuffer()
+	{
+		// Add the HTTP Content-Type header
+		$this->addContentTypeHeader();
+
+		$type = $this->input->getString('type');
 
 		// Read the files parameter
 		$files = $this->input->getString('files');
@@ -117,13 +126,13 @@ class PlgSystemScriptMerge extends JPlugin
 
 		if ($type == 'css')
 		{
-		    // Clean up CSS-code
+			// Clean up CSS-code
 			$buffer = ScriptMergeHelper::cleanCssContent($buffer);
 
 		}
 		else
 		{
-		    // Clean up JS-code
+			// Clean up JS-code
 			$buffer = ScriptMergeHelper::cleanJsContent($buffer);
 		}
 
@@ -1260,5 +1269,24 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		return '';
+	}
+
+	/**
+	 * Add the Content Type header
+	 *
+	 * @return string
+	 */
+	public function addContentTypeHeader()
+	{
+		// Send the content-type header
+		$type = $this->input->getString('type');
+
+		if ($type == 'css')
+		{
+			header('Content-Type: text/css');
+			return;
+		}
+
+		header('Content-Type: application/javascript');
 	}
 }
