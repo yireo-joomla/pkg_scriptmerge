@@ -41,8 +41,12 @@ class PlgSystemScriptMerge extends JPlugin
 	{
 		$this->helperFile = JPATH_SITE . '/components/com_scriptmerge/helpers/helper.php';
 		$this->includeHelper();
+		
+		$rt = parent::__construct($subject, $config);
 
-		return parent::__construct($subject, $config);
+		$this->input = $this->app->input;
+		
+		return $rt;
 	}
 	
 	/**
@@ -50,10 +54,8 @@ class PlgSystemScriptMerge extends JPlugin
 	 */
 	public function onAfterRoute()
 	{
-		$jinput = $this->app->input;
-
 		// Don't do anything for non scriptmerge pages
-		if ($jinput->getCmd('option') != 'com_scriptmerge')
+		if ($this->input->getCmd('option') != 'com_scriptmerge')
 		{
 			return;
 		}
@@ -71,7 +73,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Send the content-type header
-		$type = $jinput->getString('type');
+		$type = $this->input->getString('type');
 
 		if ($type == 'css')
 		{
@@ -83,7 +85,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Read the files parameter
-		$files = $jinput->getString('files');
+		$files = $this->input->getString('files');
 		$buffer = null;
 
 		if (!empty($files))
@@ -1083,8 +1085,6 @@ class PlgSystemScriptMerge extends JPlugin
 	private function isEnabled()
 	{
 		// Only continue in the right application, if enabled so
-		$input = $this->app->input;
-
 		if ($this->app->isAdmin() && $this->params->get('backend', 0) == 0)
 		{
 			return false;
@@ -1096,13 +1096,13 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Dont do anything for the ScriptMerge component and the Plugin Manager
-		if (in_array($input->getCmd('option'), array('com_plugins', 'com_scriptmerge')))
+		if (in_array($this->input->getCmd('option'), array('com_plugins', 'com_scriptmerge')))
 		{
 			return false;
 		}
 
 		// Disable through URL
-		if ($input->getInt('scriptmerge', 1) == 0)
+		if ($this->input->getInt('scriptmerge', 1) == 0)
 		{
 			return false;
 		}
@@ -1143,7 +1143,7 @@ class PlgSystemScriptMerge extends JPlugin
 			$components = explode(',', $components);
 		}
 
-		if (in_array($input->getCmd('option'), $components))
+		if (in_array($this->input->getCmd('option'), $components))
 		{
 			return false;
 		}
