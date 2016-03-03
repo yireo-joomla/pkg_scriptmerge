@@ -16,21 +16,17 @@ defined('_JEXEC') or die();
  */
 class HelperAbstract
 {
-    /**
-     * Structural data of this component
-     */
-    static public function getStructure()
-    {
-        return array(
-            'title' => 'ScriptMerge',
-            'menu' => array(
-                'home' => 'Home',
-            ),
-            'views' => array(
-                'home' => 'Home',
-            ),
-            'obsolete_files' => array(
-            ),
-        );
-    }
+	/**
+	 * Structural data of this component
+	 */
+	static public function getStructure()
+	{
+		return array(
+			'title' => 'ScriptMerge',
+			'menu' => array(
+				'home' => 'Home',),
+			'views' => array(
+				'home' => 'Home',),
+			'obsolete_files' => array(),);
+	}
 }
