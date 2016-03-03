@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system" method="upgrade">
     <name>PLG_SYSTEM_SCRIPTMERGE</name>
     <author>Yireo</author>
-    <creationDate>January 2016</creationDate>
+    <creationDate>March 2016</creationDate>
     <copyright>Copyright 2016 Yireo.com. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
     <authorEmail>info@yireo.com</authorEmail>
     <authorUrl>www.yireo.com</authorUrl>
-    <version>0.10.7</version>
+    <version>0.10.8</version>
     <description>PLG_SYSTEM_SCRIPTMERGE_DESC</description>
 
     <files>
