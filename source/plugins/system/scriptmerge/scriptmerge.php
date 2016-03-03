@@ -822,26 +822,34 @@ class PlgSystemScriptMerge extends JPlugin
 	 */
 	private function cleanup($body = null, $matches = array())
 	{
-		foreach ($matches as $typename => $type)
+		foreach ($matches as $typename => $files)
 		{
-			if (!empty($type))
+			if (empty($files))
 			{
-				$first = true;
+				continue;
+			}
 
-				foreach ($type as $file)
+			$first = true;
+
+			foreach ($files as $file)
+			{
+				if ($first)
 				{
-					if ($first)
-					{
-						$replacement = '<!-- plg_scriptmerge_' . md5($typename) . ' -->';
-						$first = false;
-					}
-					else
-					{
-						$replacement = '';
-					}
+					$body  = str_replace(
+						$file['html'],
+						'<!-- plg_scriptmerge_' . md5($typename) . ' -->',
+						$body
+					);
+					$first = false;
 
-					$body = str_replace($file['html'], $replacement, $body);
+					continue;
 				}
+
+				$body = preg_replace(
+					'/\s*' . preg_quote($file['html'], '/') . '/s',
+					'',
+					$body
+				);
 			}
 		}
 
