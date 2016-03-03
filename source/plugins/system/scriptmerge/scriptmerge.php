@@ -264,42 +264,51 @@ class PlgSystemScriptMerge extends JPlugin
 				$match = str_replace(JURI::base(), '', $match);
 				$match = preg_replace('/^' . str_replace('/', '\/', JURI::base(true)) . '/', '', $match);
 
-				if (!preg_match('/^(?:https?:)?\/\//', $match) && preg_match('/\.css(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
+				if (preg_match('/^(?:https?:)?\/\//', $match))
 				{
-					// Only include files that can be read
-					$file = preg_replace('/\?(.*)/', '', $match);
+					continue;
+				}
+			
+				if (!preg_match('/\.css(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
+				{
+					continue;
+				}
 
-					// Check for excludes
-					if (!empty($exclude_css))
+				// Only include files that can be read
+				$file = preg_replace('/\?(.*)/', '', $match);
+
+				// Check for excludes
+				if (!empty($exclude_css))
+				{
+					$match = false;
+
+					foreach ($exclude_css as $exclude)
 					{
-						$match = false;
-
-						foreach ($exclude_css as $exclude)
+						if (strstr($file, $exclude))
 						{
-							if (strstr($file, $exclude))
-							{
-								$match = true;
-								break;
-							}
-						}
-
-						if ($match == true)
-						{
-							continue;
+							$match = true;
+							break;
 						}
 					}
 
-					// Try to determine the path to this file
-					$filepath = ScriptMergeHelper::getFilePath($file);
-
-					if (!empty($filepath))
+					if ($match == true)
 					{
-						$files[] = array(
-							'remote' => 0,
-							'file' => $filepath,
-							'html' => $matches[0][$index],);
+						continue;
 					}
 				}
+
+				// Try to determine the path to this file
+				$filepath = ScriptMergeHelper::getFilePath($file);
+
+				if (empty($filepath))
+				{
+					continue;
+				}
+
+				$files[] = array(
+					'remote' => 0,
+					'file' => $filepath,
+					'html' => $matches[0][$index],);
 			}
 		}
 
@@ -394,30 +403,34 @@ class PlgSystemScriptMerge extends JPlugin
 				}
 
 				// Only try to match local JS
-				if (!preg_match('/^(?:https?:)?\/\//', $match) && preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
+				if (preg_match('/^(?:https?:)?\/\//', $match))
 				{
-					// Only include files that can be read
-					$match = preg_replace('/\?(.*)/', '', $match);
-					$filepath = ScriptMergeHelper::getFilePath($match);
-
-					if (!empty($filepath))
-					{
-						$add = true;
-
-						if ($this->params->get('remove_mootools') == 1 && stristr($filepath, 'mootools'))
-						{
-							$add = false;
-						}
-
-						if ($add)
-						{
-							$files[] = array(
-								'remote' => 0,
-								'file' => $filepath,
-								'html' => $matches[0][$index],);
-						}
-					}
+					continue;
 				}
+			
+				if (!preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
+				{
+					continue;
+				}
+
+				// Only include files that can be read
+				$match = preg_replace('/\?(.*)/', '', $match);
+				$filepath = ScriptMergeHelper::getFilePath($match);
+
+				if (empty($filepath))
+				{
+					continue;
+				}
+
+				if ($this->params->get('remove_mootools') == 1 && stristr($filepath, 'mootools'))
+				{
+					continue;
+				}
+
+				$files[] = array(
+					'remote' => 0,
+					'file' => $filepath,
+					'html' => $matches[0][$index],);
 			}
 		}
 
