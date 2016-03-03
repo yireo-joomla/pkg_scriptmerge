@@ -23,6 +23,27 @@ class PlgSystemScriptMerge extends JPlugin
 	 * @var JApplicationCms
 	 */
 	protected $app;
+
+	/**
+	 * @var string
+	 */
+	protected $helperFile;
+
+	/**
+	 * @var ScriptMergeHelper
+	 */
+	protected $helper;
+
+	/**
+	 * PlgSystemScriptMerge constructor
+	 */
+	public function __construct(&$subject, $config = array())
+	{
+		$this->helperFile = JPATH_SITE . '/components/com_scriptmerge/helpers/helper.php';
+		$this->includeHelper();
+
+		return parent::__construct($subject, $config);
+	}
 	
 	/**
 	 * Event onAfterRoute
@@ -44,8 +65,10 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Require the helper
-		require_once JPATH_SITE . '/components/com_scriptmerge/helpers/helper.php';
-		$helper = new ScriptMergeHelper;
+		if (empty($this->helper))
+		{
+			return;
+		}
 
 		// Send the content-type header
 		$type = $jinput->getString('type');
@@ -65,7 +88,7 @@ class PlgSystemScriptMerge extends JPlugin
 
 		if (!empty($files))
 		{
-			$files = $helper->decodeList($files);
+			$files = $this->helper->decodeList($files);
 
 			foreach ($files as $file)
 			{
@@ -76,7 +99,7 @@ class PlgSystemScriptMerge extends JPlugin
 						continue;
 					}
 
-					$buffer .= $helper->getCssContent($file);
+					$buffer .= $this->helper->getCssContent($file);
 				}
 				else
 				{
@@ -85,7 +108,7 @@ class PlgSystemScriptMerge extends JPlugin
 						continue;
 					}
 
-					$buffer .= $helper->getJsContent($file);
+					$buffer .= $this->helper->getJsContent($file);
 				}
 			}
 		}
@@ -103,7 +126,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Construct the expiration time
-		$helperParams = $helper->getParams();
+		$helperParams = $this->helper->getParams();
 		$expires = (int) ($helperParams->get('expiration', 30) * 60);
 
 		// Set the expiry in the future
@@ -1066,7 +1089,8 @@ class PlgSystemScriptMerge extends JPlugin
 		{
 			return false;
 		}
-		elseif ($this->app->isSite() && $this->params->get('frontend', 1) == 0)
+
+		if ($this->app->isSite() && $this->params->get('frontend', 1) == 0)
 		{
 			return false;
 		}
@@ -1083,10 +1107,8 @@ class PlgSystemScriptMerge extends JPlugin
 			return false;
 		}
 
-		// Try to include the helper
-		$helper = JPATH_SITE . '/components/com_scriptmerge/helpers/helper.php';
-
-		if (is_file($helper) == false || is_readable($helper) == false)
+		// Require the helper
+		if (empty($this->helper))
 		{
 			return false;
 		}
@@ -1126,10 +1148,25 @@ class PlgSystemScriptMerge extends JPlugin
 			return false;
 		}
 
-		// Include the helper
-		require_once $helper;
+
 
 		return true;
+	}
+
+	/**
+	 * Include the helper class and instantiate the helper
+	 */
+	private function includeHelper()
+	{
+		if (file_exists($this->helperFile) == false)
+		{
+			return;
+		}
+
+		// Include the helper
+		require_once $this->helperFile;
+
+		$this->helper = new ScriptMergeHelper;
 	}
 
 	/**
