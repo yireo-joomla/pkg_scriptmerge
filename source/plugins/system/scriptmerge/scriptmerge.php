@@ -230,7 +230,7 @@ class PlgSystemScriptMerge extends JPlugin
 		}
 
 		// Remove all current links from the document
-		//$body = $this->cleanup($body, $matches);
+		$body = $this->cleanup($body, $matches);
 
 		// Parse images
 		$body = $this->parseImages($body);
@@ -920,14 +920,26 @@ class PlgSystemScriptMerge extends JPlugin
 
 		if ($this->params->get('compress_html') == 1)
 		{
-			$body = str_replace("\n\n", "\n", $body);
-			$body = str_replace("\r\r", "\r", $body);
-			$body = preg_replace('/\>[^\S ]+/s', '>', $body);
-			$body = preg_replace('/[^\S ]+\</s', '<', $body);
-			$body = preg_replace('/\>[\s]+\</s', '><', $body);
+			$body = $this->compressHtml($body);
 		}
 
 		return $body;
+	}
+
+	/**
+	 * @param $html
+	 *
+	 * @return mixed
+	 */
+	private function compressHtml($html)
+	{
+		$html = str_replace("\n\n", "\n", $html);
+		$html = str_replace("\r\r", "\r", $html);
+		$html = preg_replace('/\>[^\S ]+/s', '>', $html);
+		$html = preg_replace('/[^\S ]+\</s', '<', $html);
+		$html = preg_replace('/\>[\s]+\</s', '><', $html);
+
+		return $html;
 	}
 
 	/**
