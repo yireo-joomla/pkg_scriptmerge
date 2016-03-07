@@ -49,10 +49,10 @@ class ScriptMergeHelper
 			return null;
 		}
 
-        if (substr($buffer, 0, 5) === '<?php')
-        {
-            return null;
-        }
+		if (substr($buffer, 0, 5) === '<?php')
+		{
+			return null;
+		}
 
 		// Initialize the basepath
 		$basefile = self::getFileUrl($file, false);
@@ -712,6 +712,7 @@ class ScriptMergeHelper
 	 */
 	static public function getFileUrl($path, $include_url = true)
 	{
+		$uri = JURI::getInstance();
 		$path = str_replace(JPATH_SITE . '/', '', $path);
 
 		if ($include_url)
@@ -719,9 +720,7 @@ class ScriptMergeHelper
 			$path = JURI::root() . $path;
 		}
 
-		if (JURI::getInstance()
-			->isSSL()
-		)
+		if ($uri->isSSL())
 		{
 			$path = str_replace('http://', 'https://', $path);
 		}
@@ -761,6 +760,8 @@ class ScriptMergeHelper
 	 */
 	static public function getFilePath($file, $base_path = null)
 	{
+		$app = JFactory::getApplication();
+
 		// If this begins with a data URI, skip it
 		if (preg_match('/^data\:/', $file))
 		{
@@ -780,8 +781,7 @@ class ScriptMergeHelper
 		$file = str_replace(JURI::root(), '', $file);
 
 		// Determine the application path
-		$app = JRequest::getInt('app', JFactory::getApplication()
-			->getClientId());
+		$app = $app->input->getInt('app', $app->getClientId());
 
 		if ($app == 1)
 		{
@@ -829,9 +829,7 @@ class ScriptMergeHelper
 		}
 
 		// Detect the right application-path
-		if (JFactory::getApplication()
-			->isAdmin()
-		)
+		if ($app->isAdmin())
 		{
 			if (strstr($file, JPATH_ADMINISTRATOR) == false && @is_file(JPATH_ADMINISTRATOR . '/' . $file))
 			{
@@ -919,14 +917,17 @@ class ScriptMergeHelper
 	/**
 	 * Send HTTP headers
 	 *
-	 * @param string $files
+	 * @param string                    $buffer
+	 * @param \Joomla\Registry\Registry $params
+	 * @param bool                      $gzip
 	 *
 	 * @return array
 	 */
 	static public function sendHttpHeaders($buffer, $params, $gzip = false)
 	{
 		// Send the content-type header
-		$type = JRequest::getString('type');
+		$app = JFactory::getApplication();
+		$type = $app->input->getString('type');
 
 		if ($type == 'css')
 		{
@@ -974,19 +975,7 @@ class ScriptMergeHelper
 	static public function getParams()
 	{
 		$plugin = JPluginHelper::getPlugin('system', 'scriptmerge');
-
-		JLoader::import('joomla.version');
-		$version = new JVersion();
-
-		if (version_compare($version->RELEASE, '1.5', 'eq'))
-		{
-			jimport('joomla.html.parameter');
-			$params = new JParameter($plugin->params);
-		}
-		else
-		{
-			$params = new JRegistry($plugin->params);
-		}
+		$params = new JRegistry($plugin->params);
 
 		return $params;
 	}

@@ -41,21 +41,26 @@ class PlgSystemScriptMerge extends JPlugin
 
 	/**
 	 * PlgSystemScriptMerge constructor
+	 *
+	 * @param $subject mixed
+	 * @param $config array
+	 *
+	 * @return mixed
 	 */
 	public function __construct(&$subject, $config = array())
 	{
 		// Set the helper file and include the helper class
 		$this->helperFile = JPATH_SITE . '/components/com_scriptmerge/helpers/helper.php';
 		$this->includeHelper();
-		
+
 		$rt = parent::__construct($subject, $config);
 
 		/** @var JInput input */
 		$this->input = $this->app->input;
-		
+
 		return $rt;
 	}
-	
+
 	/**
 	 * Event onAfterRoute
 	 */
@@ -145,9 +150,8 @@ class PlgSystemScriptMerge extends JPlugin
 		{
 			header('Cache-Control: public, max-age=' . $expires);
 			header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $expires));
-
-			// Set the expiry in the past
 		}
+		// Set the expiry in the past
 		else
 		{
 			header("Cache-Control: no-cache, no-store, must-revalidate");
@@ -184,7 +188,7 @@ class PlgSystemScriptMerge extends JPlugin
 		// Check if this plugin is enabled
 		if ($this->isEnabled() == false)
 		{
-			return false;
+			return;
 		}
 
 		// Get the body and fetch a list of files
@@ -209,12 +213,24 @@ class PlgSystemScriptMerge extends JPlugin
 
 			foreach ($matches['img'] as $img)
 			{
-				$body = str_replace($img['file'], $img['file'] . '" width="' . $img['width'] . '" height="' . $img['height'], $body);
+				$newImageTag = $img['html'];
+
+				if (stristr($newImageTag, 'width=') == false)
+				{
+					$newImageTag = str_replace('src=', 'width="' . $img['width'] . '" src=', $newImageTag);
+				}
+
+				if (stristr($newImageTag, 'height=') == false)
+				{
+					$newImageTag = str_replace('src=', 'height="' . $img['height'] . '" src=', $newImageTag);
+				}
+
+				$body = str_replace($img['html'], $newImageTag, $body);
 			}
 		}
 
 		// Remove all current links from the document
-		$body = $this->cleanup($body, $matches);
+		//$body = $this->cleanup($body, $matches);
 
 		// Parse images
 		$body = $this->parseImages($body);
@@ -309,7 +325,7 @@ class PlgSystemScriptMerge extends JPlugin
 				{
 					continue;
 				}
-			
+
 				if (!preg_match('/\.css(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
 				{
 					continue;
@@ -451,7 +467,7 @@ class PlgSystemScriptMerge extends JPlugin
 				{
 					continue;
 				}
-			
+
 				if (!preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
 				{
 					continue;
@@ -497,7 +513,7 @@ class PlgSystemScriptMerge extends JPlugin
 			preg_match('/https?:(.*)/', JURI::base(), $uri_base);
 			preg_match('/\/([a-zA-Z0-9\-\_\.]+)$/', JPATH_SITE, $root_dir);
 
-			foreach ($matches[3] as $imagePath)
+			foreach ($matches[3] as $matchIndex => $imagePath)
 			{
 				$imagePath = str_replace($uri_base[1], '', $imagePath);
 				$relativeImagePath = $imagePath;
@@ -517,7 +533,7 @@ class PlgSystemScriptMerge extends JPlugin
 						'file' => $imagePath,
 						'width' => $img[0],
 						'height' => $img[1],
-						'html' => null);
+						'html' => $matches[0][$matchIndex]);
 
 					if (!in_array($toAdd, $files))
 					{
@@ -892,21 +908,13 @@ class PlgSystemScriptMerge extends JPlugin
 			{
 				if ($first)
 				{
-					$body  = str_replace(
-						$file['html'],
-						'<!-- plg_scriptmerge_' . md5($typename) . ' -->',
-						$body
-					);
+					$body = str_replace($file['html'], '<!-- plg_scriptmerge_' . md5($typename) . ' -->', $body);
 					$first = false;
 
 					continue;
 				}
 
-				$body = preg_replace(
-					'/\s*' . preg_quote($file['html'], '/') . '/s',
-					'',
-					$body
-				);
+				$body = preg_replace('/\s*' . preg_quote($file['html'], '/') . '/s', '', $body);
 			}
 		}
 
@@ -1157,8 +1165,6 @@ class PlgSystemScriptMerge extends JPlugin
 			return false;
 		}
 
-
-
 		return true;
 	}
 
@@ -1284,6 +1290,7 @@ class PlgSystemScriptMerge extends JPlugin
 		if ($type == 'css')
 		{
 			header('Content-Type: text/css');
+
 			return;
 		}
 
