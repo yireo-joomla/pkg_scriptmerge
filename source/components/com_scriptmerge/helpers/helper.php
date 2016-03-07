@@ -781,9 +781,9 @@ class ScriptMergeHelper
 		$file = str_replace(JURI::root(), '', $file);
 
 		// Determine the application path
-		$app = $app->input->getInt('app', $app->getClientId());
+		$appId = $app->input->getInt('app', $app->getClientId());
 
-		if ($app == 1)
+		if ($appId == 1)
 		{
 			$app_path = JPATH_ADMINISTRATOR;
 		}
