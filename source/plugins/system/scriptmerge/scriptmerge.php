@@ -906,6 +906,11 @@ class PlgSystemScriptMerge extends JPlugin
 
 			foreach ($files as $file)
 			{
+				if(empty($file['html']) || trim($file['html']) == '')
+				{
+					continue;
+				}
+
 				if ($first)
 				{
 					$body = str_replace($file['html'], '<!-- plg_scriptmerge_' . md5($typename) . ' -->', $body);
@@ -914,7 +919,15 @@ class PlgSystemScriptMerge extends JPlugin
 					continue;
 				}
 
+<<<<<<< HEAD
 				$body = preg_replace('/\s*' . preg_quote($file['html'], '/') . '/s', '', $body);
+=======
+				$body = preg_replace(
+					'/(\s*\n\s*)?' . preg_quote($file['html'], '/') . '/s',
+					'',
+					$body
+				);
+>>>>>>> 2d6c19b2aa4add2bf16091e2b89e5eba9afda5da
 			}
 		}
 
