@@ -890,6 +890,11 @@ class PlgSystemScriptMerge extends JPlugin
 
 			foreach ($files as $file)
 			{
+				if(empty($file['html']) || trim($file['html']) == '')
+				{
+					continue;
+				}
+
 				if ($first)
 				{
 					$body  = str_replace(
@@ -903,7 +908,7 @@ class PlgSystemScriptMerge extends JPlugin
 				}
 
 				$body = preg_replace(
-					'/\s*' . preg_quote($file['html'], '/') . '/s',
+					'/(\s*\n\s*)?' . preg_quote($file['html'], '/') . '/s',
 					'',
 					$body
 				);
