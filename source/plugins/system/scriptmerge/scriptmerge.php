@@ -919,15 +919,7 @@ class PlgSystemScriptMerge extends JPlugin
 					continue;
 				}
 
-<<<<<<< HEAD
-				$body = preg_replace('/\s*' . preg_quote($file['html'], '/') . '/s', '', $body);
-=======
-				$body = preg_replace(
-					'/(\s*\n\s*)?' . preg_quote($file['html'], '/') . '/s',
-					'',
-					$body
-				);
->>>>>>> 2d6c19b2aa4add2bf16091e2b89e5eba9afda5da
+				$body = preg_replace('/(\s*\n\s*)?' . preg_quote($file['html'], '/') . '/s', '\s', $body);
 			}
 		}
 
