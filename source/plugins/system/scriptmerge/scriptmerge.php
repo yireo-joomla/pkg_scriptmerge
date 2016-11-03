@@ -309,11 +309,13 @@ class PlgSystemScriptMerge extends JPlugin
 
 				if (stripos($matches[0][$index], 'media="print"'))
 				{
+                    $this->addLinkHeader($match);
 					continue;
 				}
 
 				if (preg_match('/\.php\?(.*)/', $match))
 				{
+                    $this->addLinkHeader($match);
 					continue;
 				}
 
@@ -323,6 +325,7 @@ class PlgSystemScriptMerge extends JPlugin
 
 				if (preg_match('/^(?:https?:)?\/\//', $match))
 				{
+                    $this->addLinkHeader($match);
 					continue;
 				}
 
@@ -337,19 +340,20 @@ class PlgSystemScriptMerge extends JPlugin
 				// Check for excludes
 				if (!empty($exclude_css))
 				{
-					$match = false;
+					$hasMatch = false;
 
 					foreach ($exclude_css as $exclude)
 					{
 						if (strstr($file, $exclude))
 						{
-							$match = true;
+							$hasMatch = true;
 							break;
 						}
 					}
 
-					if ($match == true)
+					if ($hasMatch == true)
 					{
+                        $this->addLinkHeader($match);
 						continue;
 					}
 				}
@@ -428,19 +432,21 @@ class PlgSystemScriptMerge extends JPlugin
 				{
 					if (preg_match('/\.(pack|min)\.js/', $match))
 					{
+                        $this->addLinkHeader($match);
 						continue;
 					}
 				}
 
 				if (preg_match('/\.php\?(.*)/', $match))
 				{
+                    $this->addLinkHeader($hasMatch);
 					continue;
 				}
 
 				// Match files that should be excluded
 				if (!empty($excludes) && !empty($match))
 				{
-					$e = false;
+					$doExclude = false;
 
 					foreach ($excludes as $exclude)
 					{
@@ -451,13 +457,14 @@ class PlgSystemScriptMerge extends JPlugin
 
 						if (strstr($match, $exclude) || stripos($match, $exclude))
 						{
-							$e = true;
+							$doExclude = true;
 							break;
 						}
 					}
 
-					if ($e == true)
+					if ($doExclude == true)
 					{
+                        $this->addLinkHeader($match);
 						continue;
 					}
 				}
@@ -465,6 +472,7 @@ class PlgSystemScriptMerge extends JPlugin
 				// Only try to match local JS
 				if (preg_match('/^(?:https?:)?\/\//', $match))
 				{
+                    $this->addLinkHeader($match);
 					continue;
 				}
 
@@ -575,12 +583,14 @@ class PlgSystemScriptMerge extends JPlugin
 
 				if ($type == 'css')
 				{
+                    $this->addLinkHeader($url);
 					$tag = '<link rel="stylesheet" href="' . $url . '" type="text/css" />';
 					$tag .= $this->getIncludeCss();
 					$tag_position = $this->params->get('css_position');
 				}
 				else
 				{
+                    $this->addLinkHeader($url);
 					$async = ($this->params->get('async_merged', 0) == 1) ? ' async' : '';
 					$tag = '<script src="' . $url . '"' . $async . ' type="text/javascript"></script>';
 					$tag_position = $this->params->get('js_position');
@@ -659,6 +669,11 @@ class PlgSystemScriptMerge extends JPlugin
 
 		return $url;
 	}
+
+    private function addLinkHeader($link)
+    {
+        header('Link: <'.$link.'>; rel=preload', false);
+    }
 
 	/**
 	 * Method to build the CSS / JavaScript cache
@@ -906,11 +921,6 @@ class PlgSystemScriptMerge extends JPlugin
 
 			foreach ($files as $file)
 			{
-				if(empty($file['html']) || trim($file['html']) == '')
-				{
-					continue;
-				}
-
 				if ($first)
 				{
 					$body = str_replace($file['html'], '<!-- plg_scriptmerge_' . md5($typename) . ' -->', $body);
@@ -919,7 +929,7 @@ class PlgSystemScriptMerge extends JPlugin
 					continue;
 				}
 
-				$body = preg_replace('/(\s*\n\s*)?' . preg_quote($file['html'], '/') . '/s', '', $body);
+				$body = preg_replace('/\s*' . preg_quote($file['html'], '/') . '/s', '', $body);
 			}
 		}
 

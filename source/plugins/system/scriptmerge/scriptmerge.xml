@@ -146,6 +146,6 @@
     </config>
 
     <updateservers>
-        <server type="extension" priority="1" name="plg_system_scriptmerge">http://www.yireo.com/updates/plg_system_scriptmerge.xml</server>
+        <server type="extension" priority="1" name="plg_system_scriptmerge">https://www.yireo.com/updates/plg_system_scriptmerge.xml</server>
     </updateservers>
 </extension>

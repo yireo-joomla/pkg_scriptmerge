@@ -47,6 +47,6 @@
     <scriptfile>scriptmerge.manifest.php</scriptfile>
 
     <updateservers>
-        <server type="extension" priority="1" name="com_scriptmerge">http://www.yireo.com/updates/com_scriptmerge.xml</server>
+        <server type="extension" priority="1" name="com_scriptmerge">https://www.yireo.com/updates/com_scriptmerge.xml</server>
     </updateservers>
 </extension>
