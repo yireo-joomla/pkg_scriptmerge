@@ -115,7 +115,7 @@ class PlgSystemScriptMerge extends JPlugin
 						continue;
 					}
 
-					$buffer .= $this->helper->getCssContent($file);
+					$buffer .= $this->helper->getCssContent($file) . PHP_EOL;
 				}
 				else
 				{
@@ -124,7 +124,7 @@ class PlgSystemScriptMerge extends JPlugin
 						continue;
 					}
 
-					$buffer .= $this->helper->getJsContent($file);
+					$buffer .= $this->helper->getJsContent($file) . PHP_EOL;
 				}
 			}
 		}
