@@ -24,222 +24,143 @@ require_once dirname(dirname(__FILE__)) . '/loader.php';
  */
 class YireoCommonModel extends YireoAbstractModel
 {
-	/*
-	 * Boolean to skip table-detection
-	 *
-	 * @protected int
+	/**
+	 * Trait to implement ID behaviour
 	 */
-	protected $skip_table = true;
-
-	/*
-	 * Boolean to allow forms in the frontend
-	 *
-	 * @protected int
-	 */
-	protected $_frontend_form = false;
+	use YireoModelTraitIdentifiable;
 
 	/**
-	 * Name of the XML-file containing the JForm definitions (if any)
-	 *
-	 * @protected int
+	 * Trait to implement form behaviour
 	 */
-	protected $_form_name = null;
+	use YireoModelTraitFormable;
+
 
 	/**
-	 * Database table object
-	 *
-	 * @protected string
+	 * @var JDatabaseDriver
 	 */
-	protected $_tbl = null;
+	protected $db;
 
 	/**
-	 * Database table-name
-	 *
-	 * @protected string
+	 * @var JUser
 	 */
-	protected $_tbl_name = null;
-
-	/**
-	 * Database table-alias
-	 *
-	 * @protected string
-	 */
-	protected $_tbl_alias = null;
-
-	/**
-	 * Database primary key
-	 *
-	 * @protected string
-	 */
-	protected $_tbl_key = null;
-
-	/**
-	 * Flag to automatically set the table class prefix
-	 *
-	 * @protected boolean
-	 */
-	protected $_tbl_prefix_auto = false;
-
-	/**
-	 * Unique id
-	 *
-	 * @protected int
-	 */
-	protected $_id = null;
+	protected $user;
 
 	/**
 	 * Data array
 	 *
-	 * @protected array
+	 * @var array
 	 */
-	protected $_data = null;
+	protected $data = array();
+
+	/**
+	 * Data array
+	 *
+	 * @var array
+	 * @deprecated Use $this->data instead
+	 */
+	protected $_data = array();
+
+	/**
+	 * @var string
+	 * @deprecated Use $this->getConfig('view') instead
+	 */
+	protected $_view;
+
+	/**
+	 * @var string
+	 * @deprecated Use $this->getConfig('option') instead
+	 */
+	protected $_option;
+
+	/**
+	 * @var string
+	 * @deprecated Use $this->getConfig('option_id') instead
+	 */
+	protected $_option_id;
 
 	/**
 	 * Constructor
-	 *
-	 * @param string $tableAlias
+	 * 
+	 * @param array $config
 	 *
 	 * @return mixed
 	 */
-	public function __construct($tableAlias = null)
+	public function __construct($config = array())
 	{
-		// Import use full variables from JFactory
-		$this->db = JFactory::getDBO();
-		$this->user = JFactory::getUser();
+		// Call the parent constructor
+		$rt = parent::__construct($config);
 
-		// Create the option-namespace
-		$classParts = explode('Model', get_class($this));
-		$this->_view = (!empty($classParts[1])) ? strtolower($classParts[1]) : $this->input->getCmd('view');
-		$this->_option = $this->getOption();
-		$this->_option_id = $this->_option . '_' . $this->_view . '_';
+		$this->initCommon();
+
+		// Create the component options
+		$view      = $this->detectViewName();
+		$option    = $this->getOption();
+		$option_id = $option . '_' . $view . '_';
+		$component = $this->getComponentNameFromOption($option);
 
 		if ($this->app->isSite())
 		{
-			$this->_option_id .= $this->input->getInt('Itemid') . '_';
+			$option_id .= $this->input->getInt('Itemid') . '_';
 		}
 
-		$this->_component = preg_replace('/^com_/', '', $this->_option);
-		$this->_component = preg_replace('/[^A-Z0-9_]/i', '', $this->_component);
-		$this->_component = str_replace(' ', '', ucwords(str_replace('_', ' ', $this->_component)));
+		$this->setConfig('view', $view);
+		$this->setConfig('option', $option);
+		$this->setConfig('option_id', $option_id);
+		$this->setConfig('component', $component);
+		$this->setConfig('frontend_form', false);
+		$this->setConfig('skip_table', true);
 
-		// Call the parent constructor
-		$rt = parent::__construct();
+		$this->handleCommonDeprecated();
 
 		return $rt;
 	}
 
 	/**
-	 * Method to get data
-	 *
-	 * @param bool $forceNew
-	 *
-	 * @return array
-	 */
-	public function getData($forceNew = false)
-	{
-		return array();
-	}
-
-	/**
-	 * Method to get a XML-based form
-	 *
-	 * @param array $data
-	 * @param bool  $loadData
+	 * @param $option
 	 *
 	 * @return mixed
 	 */
-	public function getForm($data = array(), $loadData = true)
+	protected function getComponentNameFromOption($option)
 	{
-		// Do not continue if this is not the right backend
-		if ($this->app->isAdmin() == false && $this->_frontend_form == false)
-		{
-			return false;
-		}
-
-		// Do not continue if this is not a singular view
-		if (method_exists($this, 'isSingular') && $this->isSingular() == false)
-		{
-			return false;
-		}
-
-		// Read the form from XML
-		$xmlFile = JPATH_ADMINISTRATOR . '/components/' . $this->_option . '/models/' . $this->_form_name . '.xml';
-
-		if (!file_exists($xmlFile))
-		{
-			$xmlFile = JPATH_SITE . '/components/' . $this->_option . '/models/' . $this->_form_name . '.xml';
-		}
-
-		if (!file_exists($xmlFile))
-		{
-			return false;
-		}
-
-		// Construct the form-object
-		jimport('joomla.form.form');
-		$form = JForm::getInstance('item', $xmlFile);
-
-		if (empty($form))
-		{
-			return false;
-		}
-
-		// Bind the data
-		$data = $this->getData();
-		$form->bind(array('item' => $data));
-
-		// Insert the params-data if set
-		if (!empty($data->params))
-		{
-			$params = $data->params;
-
-			if (is_string($params))
-			{
-				$params = YireoHelper::toRegistry($params)
-					->toArray();
-			}
-
-			$form->bind(array('params' => $params));
-		}
-
-		return $form;
-	}
-
-	/*
-	 * Helper method to override the name of the form
-	 */
-	public function setFormName($form_name)
-	{
-		$this->_form_name = $form_name;
+		$component = preg_replace('/^com_/', '', $option);
+		$component = preg_replace('/[^A-Z0-9_]/i', '', $component);
+		$component = str_replace(' ', '', ucwords(str_replace('_', ' ', $component)));
+		
+		return $component;
 	}
 
 	/**
-	 * Override the default method to allow for skipping table creation
-	 *
-	 * @param string $name
-	 * @param string $prefix
-	 * @param array  $options
-	 *
-	 * @return mixed
+	 * @return string
 	 */
-	public function getTable($name = '', $prefix = 'Table', $options = array())
+	protected function detectViewName()
 	{
-		if ($this->skip_table == true)
-		{
-			return null;
-		}
+		$classParts = explode('Model', get_class($this));
+		$view       = (!empty($classParts[1])) ? strtolower($classParts[1]) : $this->input->getCmd('view');
 
-		if (empty($name))
-		{
-			$name = $this->_tbl_alias;
-		}
+		return $view;
+	}
 
-		if (!empty($this->_tbl_prefix))
-		{
-			$prefix = $this->_tbl_prefix;
-		}
+	/**
+	 * Inititalize system variables
+	 */
+	protected function initCommon()
+	{
+		$this->db   = JFactory::getDbo();
+		$this->user = JFactory::getUser();
+	}
 
-		return parent::getTable($name, $prefix, $options);
+	/**
+	 * Handle deprecated variables
+	 */
+	protected function handleCommonDeprecated()
+	{
+		$this->_db   = $this->db;
+		$this->_user = $this->user;
+
+		$this->_view          = $this->getConfig('view');
+		$this->_option        = $this->getConfig('option');
+		$this->_option_id     = $this->getConfig('option_id');
+		$this->_frontend_form = $this->getConfig('frontend_form');
 	}
 
 	/**
@@ -249,12 +170,37 @@ class YireoCommonModel extends YireoAbstractModel
 	 */
 	protected function getOption()
 	{
-		$classParts = explode('Model', get_class($this));
-		$comPart = (!empty($classParts[0])) ? $classParts[0] : null;
-		$comPart = preg_replace('/([A-Z])/', '_\\1', $comPart);
-		$comPart = strtolower(preg_replace('/^_/', '', $comPart));
-		$option = (!empty($comPart) && $comPart != 'yireo') ? 'com_' . $comPart : $this->input->getCmd('option');
+		if (empty($this->option))
+		{
+			$classParts   = explode('Model', get_class($this));
+			$comPart      = (!empty($classParts[0])) ? $classParts[0] : null;
+			$comPart      = preg_replace('/([A-Z])/', '_\\1', $comPart);
+			$comPart      = strtolower(preg_replace('/^_/', '', $comPart));
+			$option       = (!empty($comPart) && $comPart != 'yireo') ? 'com_' . $comPart : $this->input->getCmd('option');
+			$this->option = $option;
+		}
 
-		return $option;
+		return $this->option;
+	}
+	
+	/**
+	 * Method to override the parameters
+	 *
+	 * @param mixed
+	 */
+	public function setParams($params = null)
+	{
+		if (!empty($params))
+		{
+			$this->params = $params;
+		}
+	}
+
+	/**
+	 * @return \Joomla\Registry\Registry
+	 */
+	public function getParams()
+	{
+		return $this->params;
 	}
 }

@@ -112,7 +112,8 @@ class YireoHelperInstall
 		// Get the name of downloaded package
 		if (!is_file($package['packagefile']))
 		{
-			$package['packagefile'] = $app->getCfg('tmp_path') . '/' . $package['packagefile'];
+			$config = JFactory::getConfig();
+			$package['packagefile'] = $config->get('tmp_path') . '/' . $package['packagefile'];
 		}
 
 		// Clean up the installation
@@ -139,6 +140,7 @@ class YireoHelperInstall
 	{
 		// System variables
 		$app = JFactory::getApplication();
+		$config = JFactory::getConfig();
 
 		// Use fopen() instead
 		if (ini_get('allow_url_fopen') == 1)
@@ -149,15 +151,16 @@ class YireoHelperInstall
 		// Set the target path if not given
 		if (empty($file))
 		{
-			$file = $app->getCfg('tmp_path') . '/' . JInstallerHelper::getFilenameFromURL($url);
+			$file = $config->get('tmp_path') . '/' . JInstallerHelper::getFilenameFromURL($url);
 		}
 		else
 		{
-			$file = $app->getCfg('tmp_path') . '/' . basename($file);
+			$file = $config->get('tmp_path') . '/' . basename($file);
 		}
 
 		// Open the remote server socket for reading
 		$ch = curl_init($url);
+
 		curl_setopt_array($ch, array(
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_HEADER => false,
@@ -166,13 +169,14 @@ class YireoHelperInstall
 			CURLOPT_SSL_VERIFYHOST => false,
 			CURLOPT_FRESH_CONNECT => false,
 			CURLOPT_FORBID_REUSE => false,
-			CURLOPT_BUFFERSIZE => 8192,));
+			CURLOPT_BUFFERSIZE => 8192));
+
 		$data = curl_exec($ch);
 		curl_close($ch);
 
 		if (empty($data))
 		{
-			JError::raiseWarning(42, JText::_('LIB_YIREO_HELPER_INSTALL_REMOTE_DOWNLOAD_FAILED') . ', ' . $error);
+			JError::raiseWarning(42, JText::_('LIB_YIREO_HELPER_INSTALL_REMOTE_DOWNLOAD_FAILED') . ', ' . curl_error($ch));
 
 			return false;
 		}
@@ -238,7 +242,7 @@ class YireoHelperInstall
 
 		try
 		{
-			$db->query();
+			$db->execute();
 			JError::raiseNotice('SOME_ERROR_CODE', JText::sprintf('LIB_YIREO_HELPER_INSTALL_ENABLE_PLUGIN_SUCCESS', $label));
 		}
 		catch (Exception $e)

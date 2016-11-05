@@ -28,21 +28,36 @@ class YireoViewForm extends YireoView
 {
 	/*
 	 * Identifier of the library-view
+	 *
+	 * @var string
 	 */
 	protected $_viewParent = 'form';
 
 	/*
 	 * Flag to determine whether this view is a single-view
+	 *
+	 * @var boolean
 	 */
 	protected $_single = true;
 
+	/**
+	 * Item object
+	 *
+	 * @var object
+	 */
+	protected $item;
+
 	/*
 	 * Array of all the form-fields
+	 *
+	 * @var array
 	 */
 	protected $_fields = array();
 
 	/*
 	 * Editor-field
+	 *
+	 * @var string
 	 */
 	protected $_editor_field = null;
 
@@ -54,7 +69,6 @@ class YireoViewForm extends YireoView
 	public function __construct($config = array())
 	{
 		// Add the Yireo form fields
-		jimport('joomla.form.form');
 		JForm::addFieldPath(JPATH_LIBRARIES . '/yireo/form/fields');
 		JForm::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR . '/lib/form/fields');
 		JForm::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR . '/fields');
@@ -63,19 +77,19 @@ class YireoViewForm extends YireoView
 		$rt = parent::__construct($config);
 
 		// Detect the editor field
-		if (empty($this->_editor_field) && !empty($this->_table))
+		if (empty($this->_editor_field) && !empty($this->table))
 		{
-			if ($this->_table->hasField('body'))
+			if ($this->table->hasField('body'))
 			{
 				$this->_editor_field = 'body';
 			}
 
-			if ($this->_table->hasField('description'))
+			if ($this->table->hasField('description'))
 			{
 				$this->_editor_field = 'description';
 			}
 
-			if ($this->_table->hasField('text'))
+			if ($this->table->hasField('text'))
 			{
 				$this->_editor_field = 'text';
 			}
@@ -92,20 +106,23 @@ class YireoViewForm extends YireoView
 	public function display($tpl = null)
 	{
 		// Hide the menu
-		$this->jinput->set('hidemainmenu', 1);
+		$this->input->set('hidemainmenu', 1);
 
 		// Initialize tooltips
-		JHTML::_('behavior.tooltip');
+		JHtml::_('behavior.tooltip');
 
 		// Automatically fetch the item and assign it to the layout
-		$this->fetchItem();
+		if (!empty($this->table))
+		{
+			$this->fetchItem();
+		}
 
 		if ($this->prepare_display == true)
 		{
 			$this->prepareDisplay();
 		}
 
-		parent::display($tpl);
+		return parent::display($tpl);
 	}
 
 	/*

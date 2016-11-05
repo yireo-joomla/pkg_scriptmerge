@@ -16,409 +16,411 @@ defined('_JEXEC') or die();
 // Import the loader
 require_once dirname(__FILE__) . '/loader.php';
 
+require_once 'model/trait/paginable.php';
+require_once 'model/trait/checkable.php';
+require_once 'model/trait/filterable.php';
+require_once 'model/trait/limitable.php';
+require_once 'model/trait/debuggable.php';
+require_once 'model/trait/table.php';
+
 /**
  * Yireo Model
  * Parent class for models that use the full-blown MVC pattern
  *
- * @package Yireo
+ * @package    Yireo
+ * @deprecated Use YireoModelItem or YireoModelItems instead
  */
 class YireoModel extends YireoCommonModel
 {
 	/**
+	 * Trait to implement debugging behaviour
+	 */
+	use YireoModelTraitDebuggable;
+
+	/**
+	 * Trait to implement table behaviour
+	 */
+	use YireoModelTraitTable;
+
+	/**
+	 * Trait to implement checkout behaviour
+	 */
+	use YireoModelTraitCheckable;
+
+	/**
+	 * Trait to implement pagination behaviour
+	 */
+	use YireoModelTraitPaginable;
+
+	/**
+	 * Trait to implement filter behaviour
+	 */
+	use YireoModelTraitFilterable;
+
+	/**
+	 * Trait to implement filter behaviour
+	 */
+	use YireoModelTraitLimitable;
+
+	/**
+	 * @var mixed
+	 */
+	protected $data;
+
+	/**
 	 * Indicator if this is a model for multiple or single entries
 	 *
-	 * @protected int
+	 * @var bool
+	 * @deprecated Use YireoModelItem or YireoModelItems instead
 	 */
-	protected $single = null;
+	protected $single = false;
 
 	/**
 	 * Boolean to allow for caching
 	 *
-	 * @protected int
+	 * @var bool
+	 * @deprecated Use $this->getConfig('cache') instead
 	 */
 	protected $_cache = false;
 
 	/**
-	 * Boolean to allow for debugging
-	 *
-	 * @protected int
-	 */
-	protected $_debug = false;
-
-	/**
-	 * Boolean to allow for filtering
-	 *
-	 * @protected int
-	 */
-	protected $_allow_filter = true;
-
-	/**
-	 * Boolean to allow for checking out
-	 *
-	 * @protected int
-	 */
-	protected $_checkout = true;
-
-	/*
-	 * Boolean to skip table-detection
-	 *
-	 * @protected int
-	 */
-	protected $skip_table = false;
-
-	/**
-	 * Category total
-	 *
-	 * @protected integer
-	 */
-	protected $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @protected object
-	 */
-	protected $_pagination = null;
-
-	/**
-	 * List limit
-	 *
-	 * @protected int
-	 */
-	protected $_limit = null;
-
-	/**
-	 * Limit start
-	 *
-	 * @protected int
-	 */
-	protected $_limitstart = null;
-
-	/**
 	 * Ordering field
 	 *
-	 * @protected string
+	 * @var string
 	 */
 	protected $_ordering = null;
 
 	/**
 	 * Where segments
 	 *
-	 * @protected array
+	 * @var array
 	 */
-	protected $_where = array();
+	protected $where = array();
 
 	/**
 	 * Search columns
 	 *
-	 * @protected array
+	 * @var array
+	 * @deprecated Use $this->getConfig('search_fields') instead
 	 */
 	protected $search = array();
 
 	/**
+	 * Search columns
+	 *
+	 * @var array
+	 * @deprecated Use $this->getConfig('search_fields') instead
+	 */
+	protected $_search = array();
+
+	/**
 	 * Order-by segments
 	 *
-	 * @protected array
+	 * @var array
 	 */
 	protected $_orderby = array();
 
 	/**
 	 * Group-by segments
 	 *
-	 * @protected array
+	 * @var array
 	 */
 	protected $_groupby = array();
 
 	/**
 	 * Extra query segments
 	 *
-	 * @protected array
+	 * @var array
 	 */
 	protected $_extra = array();
 
 	/**
 	 * Extra select fields
 	 *
-	 * @protected array
+	 * @var array
 	 */
 	protected $_extraFields = array();
 
 	/**
 	 * Order-by default-value
 	 *
-	 * @protected string
+	 * @var string
 	 */
 	protected $_orderby_default = null;
 
 	/**
 	 * Order-by default-title
 	 *
-	 * @protected string
+	 * @var string
 	 */
 	protected $_orderby_title = null;
 
 	/**
 	 * List of fields to autoconvert into column-seperated fields
 	 *
-	 * @protected array
+	 * @var array
 	 */
 	protected $_columnFields = array();
 
 	/**
-	 * Enable the limit in the query (or in the data-array)
-	 *
-	 * @protected string
+	 * @var \Joomla\Registry\Registry
 	 */
-	protected $_limit_query = false;
-
-	/**
-	 * Flag to force a value
-	 *
-	 * @constant boolean
-	 */
-	const FORCE_NEW = true;
+	protected $params;
 
 	/**
 	 * Constructor
 	 *
-	 * @param string $tableAlias
+	 * @param mixed $config
 	 *
 	 * @return mixed
 	 */
-	public function __construct($tableAlias = null)
+	public function __construct($config = array())
 	{
+		// Handle a deprecated constructor call
+		if (is_string($config))
+		{
+			$tableAlias        = $config;
+			$this->table_alias = $tableAlias;
+			$config            = array('table_alias' => $tableAlias);
+		}
+
 		// Call the parent constructor
-		$rt = parent::__construct();
+		$rt = parent::__construct($config);
 
-		// Set the database variables
-		if ($this->_tbl_prefix_auto == true)
+		$this->setConfig('skip_table', false);
+		$this->setConfig('table_prefix_auto', true);
+		$this->setTablePrefix();
+		$this->table = $this->getTable($this->getConfig('table_alias'));
+
+		if ($this->isSingular())
 		{
-			$this->_tbl_prefix = $this->_component . 'Table';
-		}
-
-		// @todo: Set this in a metadata array
-		$this->_tbl_alias = $tableAlias;
-		$this->_tbl = $this->getTable($tableAlias);
-
-		if ($this->_tbl)
-		{
-			$this->_tbl_name = $this->_tbl->getTableName();
-			$this->_tbl_key = $this->_tbl->getKeyName();
-		}
-
-		$this->_entity = $tableAlias;
-		$this->_form_name = $tableAlias;
-
-		// Detect the orderby-default
-		if (empty($this->_orderby_default))
-		{
-			$this->_orderby_default = $this->_tbl->getDefaultOrderBy();
-		}
-
-		if (empty($this->_orderby_title))
-		{
-			if ($this->_tbl->hasField('title'))
-			{
-				$this->_orderby_title = 'title';
-			}
-
-			if ($this->_tbl->hasField('label'))
-			{
-				$this->_orderby_title = 'label';
-			}
-
-			if ($this->_tbl->hasField('name'))
-			{
-				$this->_orderby_title = 'name';
-			}
-		}
-
-		// Detect checkout
-		if ($this->_tbl->hasField('checked_out'))
-		{
-			$this->_checkout = true;
+			$this->initSingle();
 		}
 		else
 		{
-			$this->_checkout = false;
+			$this->initOrderBy();
+			$this->initPlural();
 		}
 
 		// Set the parameters for the frontend
-		if (empty($this->params))
-		{
-			if ($this->app->isSite() == false)
-			{
-				$this->params = JComponentHelper::getParams($this->_option);
-			}
-			else
-			{
-				$this->params = $this->app->getParams($this->_option);
-			}
-		}
+		$this->initParams();
 
-		// Enable debugging
-		if ($this->params->get('debug', 0) == 1)
-		{
-			$this->_debug = true;
-		}
-
-		// Determine whether this model is single or not
-		if ($this->single == null)
-		{
-			$className = get_class($this);
-
-			if (preg_match('/s$/', $className))
-			{
-				$this->single = false;
-			}
-			else
-			{
-				$this->single = true;
-			}
-		}
-
-		// Initialize the ID for single records
-		if ($this->isSingular())
-		{
-			$cid = $this->input->get('cid', array(0), '', 'array');
-
-			if (!empty($cid) && count($cid) > 0)
-			{
-				$this->setId((int) $cid[0]);
-			}
-
-			$id = $this->input->getInt('id', 0);
-
-			if (!empty($id) && $id > 0)
-			{
-				$this->setId((int) $id);
-			}
-
-			
-		}
-		// Multiple records
-		else
-		{
-			// Initialize limiting
-			$this->initLimit();
-			$this->initLimitstart();
-
-			// Initialize ordering
-			$filter_order = $this->getFilter('order', '{tableAlias}.' . $this->_orderby_default, 'string');
-			$filter_order_Dir = $this->getFilter('order_Dir');
-
-			if (!empty($filter_order_Dir))
-			{
-				$filter_order_Dir = ' ' . strtoupper($filter_order_Dir);
-			}
-
-			$this->addOrderby($filter_order . $filter_order_Dir);
-			$this->addOrderby('{tableAlias}.' . $this->_orderby_default);
-
-		}
+		$this->handleModelDeprecated();
 
 		return $rt;
 	}
 
 	/**
-	 * Method to get the identifier
-	 *
-	 * @return int
+	 * @param mixed $name
+	 * @param mixed $value
 	 */
-	public function getId()
+	public function setData($name, $value = null)
 	{
-		return $this->_id;
+		if (is_array($name) && empty($value))
+		{
+			$this->data = $name;
+
+			return;
+		}
+
+		$this->data[$name] = $value;
 	}
 
 	/**
-	 * Method to set the identifier
+	 * @param $name
 	 *
-	 * @param int  $id
-	 * @param bool $reinit
+	 * @return bool|mixed
 	 */
-	public function setId($id = 0, $reinit = true)
+	public function getDataByName($name = null)
 	{
-		$this->_id = $id;
-
-		if ($reinit)
+		if (empty($this->data[$name]))
 		{
-			$this->_data = null;
+			return false;
+		}
+
+		return $this->data[$name];
+	}
+
+	/**
+	 * Method to fetch database-results
+	 *
+	 * @param string $query
+	 * @param string $type : object|objectList|result
+	 *
+	 * @return mixed
+	 */
+	public function getDbResult($query, $type = 'object')
+	{
+		if ($this->_cache == true)
+		{
+			$cache = JFactory::getCache('lib_yireo_model');
+			$rs    = $cache->call(array($this, '_getDbResult'), $query, $type);
+		}
+		else
+		{
+			$rs = $this->_getDbResult($query, $type);
+		}
+
+		return $rs;
+	}
+
+	/**
+	 * Method to fetch database-results
+	 *
+	 * @param string $query
+	 * @param string $type : object|objectList|result
+	 *
+	 * @throws Exception
+	 * @return mixed
+	 */
+	public function _getDbResult($query, $type = 'object')
+	{
+		// Set the query in the database-object
+		$this->_db->setQuery($query);
+
+		// Print the query if debugging is enabled
+		if (method_exists($this, 'allowDebug') && $this->allowDebug())
+		{
+			$this->app->enqueueMessage($this->getDbDebug(), 'debug');
+		}
+
+		// Fetch the database-result
+		if ($type == 'objectList')
+		{
+			$rs = $this->_db->loadObjectList();
+		}
+		elseif ($type == 'result')
+		{
+			$rs = $this->_db->loadResult();
+		}
+		else
+		{
+			$rs = $this->_db->loadObject();
+		}
+
+		// Return the result
+		return $rs;
+	}
+
+	/**
+	 * Throw a database exception
+	 */
+	protected function throwDbException()
+	{
+		$db = JFactory::getDbo();
+
+		throw new JDatabaseExceptionUnsupported($db->getErrorMsg());
+	}
+
+	/**
+	 * Initialize ORDER BY details
+	 */
+	protected function initOrderBy()
+	{
+		if (empty($this->_orderby_default))
+		{
+			$this->_orderby_default = $this->table->getDefaultOrderBy();
+		}
+
+		if (empty($this->_orderby_title))
+		{
+			if ($this->table->hasField('title'))
+			{
+				$this->_orderby_title = 'title';
+			}
+
+			if ($this->table->hasField('label'))
+			{
+				$this->_orderby_title = 'label';
+			}
+
+			if ($this->table->hasField('name'))
+			{
+				$this->_orderby_title = 'name';
+			}
 		}
 	}
 
 	/**
-	 * Method to initialize the limit parameter
-	 * 
-	 * @param string $limit
+	 * @return \Joomla\Registry\Registry
 	 */
-	public function initLimit($limit = null)
+	protected function initParams()
 	{
-		if (empty($limit))
+		if (!empty($this->params))
 		{
-			$limit = $this->getFilter('list_limit');
+			return $this->params;
 		}
 
-		if (empty($limit))
+		if ($this->app->isSite() == false)
 		{
-			$limit = $this->app->getUserStateFromRequest($this->getFilterName('limit'), 'list_limit', $this->app->getCfg('list_limit'), 'int');
+			$this->params = JComponentHelper::getParams($this->_option);
+
+			return $this->params;
 		}
 
-		$this->setState('limit', $limit);
+		$this->params = $this->app->getParams($this->_option);
+
+		return $this->params;
 	}
 
 	/**
-	 * Method to initialize the limitstart parameter\
-	 * 
-	 * @param string $limitstart
+	 * Inititalize system variables
 	 */
-	public function initLimitstart($limitstart = null)
+	protected function initSingle()
 	{
-		if (is_numeric($limitstart) == false)
+		$cid = $this->input->get('cid', array(0), '', 'array');
+
+		if (!empty($cid) && count($cid) > 0)
 		{
-			$limitstart = $this->app->getUserStateFromRequest($this->getFilterName('limitstart'), 'limitstart', 0, 'int');
+			$this->setId((int) $cid[0]);
 		}
 
-		$this->setState('limitstart', $limitstart);
+		$id = $this->input->getInt('id', 0);
+
+		if (!empty($id) && $id > 0)
+		{
+			$this->setId((int) $id);
+		}
 	}
 
 	/**
-	 * Method to get a filter from the user-state
-	 *
-	 * @param string $filter
-	 * @param string $default
-	 * @param string $type
-	 * @param string $option
-	 *
-	 * @return string
+	 * Inititalize system variables
 	 */
-	public function getFilter($filter = '', $default = '', $type = 'cmd', $option = '')
+	protected function initPlural()
 	{
-		if ($this->_allow_filter == false)
+		// Initialize limiting
+		$this->initLimit();
+		$this->initLimitstart();
+
+		// Initialize ordering
+		$filter_order     = $this->getFilter('order', '{tableAlias}.' . $this->_orderby_default, 'string');
+		$filter_order_Dir = $this->getFilter('order_Dir');
+
+		if (!empty($filter_order_Dir))
 		{
-			return null;
+			$filter_order_Dir = ' ' . strtoupper($filter_order_Dir);
 		}
 
-		$value = $this->app->getUserStateFromRequest($this->getFilterName($filter), 'filter_' . $filter, $default, $type);
-
-		return $value;
+		$this->addOrderby($filter_order . $filter_order_Dir);
+		$this->addOrderby('{tableAlias}.' . $this->_orderby_default);
 	}
 
 	/**
-	 * Get the current filter name
-	 *
-	 * @param      $filter
-	 * @param null $option
-	 *
-	 * @return string
+	 * Handle deprecated variables
 	 */
-	public function getFilterName($filter, $option = null)
+	protected function handleModelDeprecated()
 	{
-		if (empty($option))
+		$this->_table = $this->table;
+
+		if (!empty($this->_search))
 		{
-			$option = $this->_option_id;
+			$this->setConfig('search_fields', $this->_search);
 		}
 
-		return $option . 'filter_' . $filter;
+		if (!empty($this->search))
+		{
+			$this->setConfig('search_fields', $this->search);
+		}
 	}
 
 	/**
@@ -446,7 +448,7 @@ class YireoModel extends YireoCommonModel
 	public function getData($forceNew = false)
 	{
 		// Load the data if they are not just set or if the force-flag is set
-		if ($this->_data === null || $forceNew == self::FORCE_NEW)
+		if ($this->data === null || $forceNew)
 		{
 			// Load some empty data-set
 			$this->getEmpty();
@@ -458,7 +460,7 @@ class YireoModel extends YireoCommonModel
 			if ($this->isSingular() && $this->getId() > 0)
 			{
 				$query = $this->buildQuery();
-				$data = $this->getDbResult($query, 'object');
+				$data  = $this->getDbResult($query, 'object');
 
 				if (!empty($data))
 				{
@@ -481,11 +483,11 @@ class YireoModel extends YireoCommonModel
 					}
 
 					// Set the ID
-					$key = $this->getPrimaryKey();
+					$key      = $this->getPrimaryKey();
 					$data->id = $data->$key;
 
-					$data->metadata = $this->getMetadata();
-					$this->_data = $data;
+					$data->metadata = $this->getConfig();
+					$this->data     = $data;
 
 				}
 				else
@@ -494,12 +496,11 @@ class YireoModel extends YireoCommonModel
 				}
 
 				// Check to see if the data is published
-				$stateField = $this->_tbl->getStateField();
+				$stateField = $this->table->getStateField();
+
 				if ($this->app->isSite() && isset($data->$stateField) && $data->$stateField == 0)
 				{
-					JError::raiseError(404, JText::_('LIB_YIREO_MODEL_NOT_FOUND'));
-
-					return;
+					throw new \Yireo\Exception\Model\NotFound(JText::_('LIB_YIREO_MODEL_NOT_FOUND'));
 				}
 
 				// Fill in non-existing fields
@@ -518,7 +519,7 @@ class YireoModel extends YireoCommonModel
 				if ($this->isSingular() == false)
 				{
 					$query = $this->buildQuery();
-					$data = $this->getDbResult($query, 'objectList');
+					$data  = $this->getDbResult($query, 'objectList');
 
 					if (!empty($data))
 					{
@@ -538,12 +539,8 @@ class YireoModel extends YireoCommonModel
 							}
 
 							// Backend permissions
-							if ($this->app->isAdmin() && (bool) $this->_tbl->hasAssetId() == true)
+							if ($this->app->isAdmin() && (bool) $this->table->hasAssetId() == true)
 							{
-								// Get the ID
-								$key = $this->getPrimaryKey();
-								$id = $item->$key;
-
 								// Determine the owner
 								$owner = 0;
 
@@ -566,8 +563,8 @@ class YireoModel extends YireoCommonModel
 								}
 
 								// Get the ACL rules
-								$canEdit = $this->user->authorise('core.edit', $this->_option);
-								$canEditOwn = $this->user->authorise('core.edit.own', $this->_option);
+								$canEdit    = $this->user->authorise('core.edit', $this->getConfig('option'));
+								$canEditOwn = $this->user->authorise('core.edit.own', $this->getConfig('option'));
 
 								// Determine authorisation
 								$authorise = false;
@@ -614,7 +611,7 @@ class YireoModel extends YireoCommonModel
 							// Check for publish_up and publish_down
 							if ($this->app->isSite())
 							{
-								$publish_up = $item->params->get('publish_up');
+								$publish_up   = $item->params->get('publish_up');
 								$publish_down = $item->params->get('publish_down');
 
 								if (!empty($publish_up) && strtotime($publish_up) > time())
@@ -639,10 +636,10 @@ class YireoModel extends YireoCommonModel
 							}
 
 							// Add the metadata
-							$item->metadata = $this->getMetadata();
+							$item->metadata = $this->getConfig();
 
 							// Set the ID
-							$key = $this->getPrimaryKey();
+							$key      = $this->getPrimaryKey();
 							$item->id = $item->$key;
 
 							// Fill in non-existing fields
@@ -658,12 +655,12 @@ class YireoModel extends YireoCommonModel
 							$data[$index] = $item;
 						}
 
-						if ($this->_limit_query == false)
+						if ($this->getConfig('limit_query') == false)
 						{
-							$this->_total = count($data);
+							$this->total = count($data);
 						}
 
-						$this->_data = $data;
+						$this->data = $data;
 					}
 				}
 			}
@@ -671,166 +668,18 @@ class YireoModel extends YireoCommonModel
 			// Allow to modify the data afterwards
 			if (method_exists($this, 'onDataLoadAfter'))
 			{
-				$data = $this->onDataLoadAfter($data);
+				$this->data = $this->onDataLoadAfter($this->data);
 			}
 		}
 
-		if ($this->isSingular() == false && $this->_limit_query == false && $this->getState('limit') > 0)
+		if ($this->isSingular() == false && $this->getConfig('limit_query') == false && $this->getState('limit') > 0)
 		{
-			$part = array_slice($this->_data, $this->getState('limitstart'), $this->getState('limit'));
+			$part = array_slice($this->data, (int) $this->getState('limitstart'), $this->getState('limit'));
 
 			return $part;
 		}
 
-		return $this->_data;
-	}
-
-	/**
-	 * Method to get the total number of records
-	 *
-	 * @return int
-	 */
-	public function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			// The original database-query did NOT include a LIMIT statement
-			if ($this->_limit_query == false)
-			{
-				$this->_total = count($this->_data);
-
-				// The original database-query included a LIMIT statement, so we need a second query
-			}
-			else
-			{
-				$query = $this->buildQuery();
-				$query = preg_replace('/^(.*)FROM/sm', 'SELECT COUNT(*) FROM', $query);
-				$query = preg_replace('/LIMIT(.*)$/', '', $query);
-				$query = preg_replace('/ORDER\ BY(.*)$/m', '', $query);
-
-				$data = $this->getDbResult($query, 'result');
-				$this->_total = (int) $data;
-			}
-		}
-
-		return $this->_total;
-	}
-
-	/**
-	 * Method to get a pagination object for the fetched records
-	 *
-	 * @return JPagination
-	 */
-	public function getPagination()
-	{
-		// Lets load the pagination if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			// Make sure the data is loaded
-			$this->getData();
-			$this->getTotal();
-
-			// Reset pagination if it does not make sense
-			if ($this->getState('limitstart') > $this->getTotal())
-			{
-				$this->setState('limitstart', 0);
-				$this->app->setUserState('limitstart', 0);
-				$this->getData(self::FORCE_NEW);
-			}
-
-			// Build the pagination
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination($this->getTotal(), $this->getState('limitstart'), $this->getState('limit'));
-		}
-
-		return $this->_pagination;
-	}
-
-	/**
-	 * Tests if an item is checked out
-	 *
-	 * @param int $uid
-	 *
-	 * @return bool
-	 */
-	public function isCheckedOut($uid = 0)
-	{
-		if ($this->_checkout == true && $this->getData())
-		{
-			if ($uid)
-			{
-				return ($this->_data->checked_out && $this->_data->checked_out != $uid);
-			}
-			else
-			{
-				return $this->_data->checked_out;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Method to checkin/unlock the table
-	 *
-	 * @param null
-	 *
-	 * @return bool
-	 */
-	public function checkin()
-	{
-		if ($this->_checkout == false)
-		{
-			return true;
-		}
-
-		if ($this->_id)
-		{
-			if (!$this->_tbl->checkin($this->_id))
-			{
-				$this->setError($this->_db->getErrorMsg());
-
-				return false;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Method to checkout/lock the table
-	 *
-	 * @param int $uid
-	 *
-	 * @return bool
-	 */
-	public function checkout($uid = null)
-	{
-		if ($this->_checkout == true)
-		{
-			return true;
-		}
-
-		if ($this->_id)
-		{
-			// Make sure we have a user id to checkout the item with
-			if (is_null($uid))
-			{
-				$uid = $this->user->get('id');
-			}
-			// Lets get to it and checkout the thing...
-			if (!$this->_tbl->checkout($uid, $this->_id))
-			{
-				$this->setError($this->_db->getErrorMsg());
-
-				return false;
-			}
-
-			return true;
-		}
-
-		return false;
+		return $this->data;
 	}
 
 	/**
@@ -845,7 +694,6 @@ class YireoModel extends YireoCommonModel
 		// Check the integrity of data
 		if (empty($data) || !is_array($data))
 		{
-			$this->setError('Invalid data');
 			$this->saveTmpSession($data);
 
 			return false;
@@ -873,22 +721,22 @@ class YireoModel extends YireoCommonModel
 		}
 
 		// Automatically set some data
-		$data['modified'] = (method_exists('JDate', 'toSql')) ? $now->toSql() : $now->toMySQL();
-		$data['modified_date'] = (method_exists('JDate', 'toSql')) ? $now->toSql() : $now->toMySQL();
-		$data['modified_by'] = $uid;
+		$data['modified']      = $now->toSql();
+		$data['modified_date'] = $now->toSql();
+		$data['modified_by']   = $uid;
 
 		// Set the creation date if the item is new
 		if (empty($data['id']) || $data['id'] == 0)
 		{
-			$data['created'] = (method_exists('JDate', 'toSql')) ? $now->toSql() : $now->toMySQL();
-			$data['created_date'] = (method_exists('JDate', 'toSql')) ? $now->toSql() : $now->toMySQL();
-			$data['created_by'] = $uid;
+			$data['created']      = $now->toSql();
+			$data['created_date'] = $now->toSql();
+			$data['created_by']   = $uid;
 		}
 
 		// Autocorrect the publish_up and publish_down dates
 		if (isset($data['params']['publish_up']) && isset($data['params']['publish_down']))
 		{
-			$publish_up = strtotime($data['params']['publish_up']);
+			$publish_up   = strtotime($data['params']['publish_up']);
 			$publish_down = strtotime($data['params']['publish_down']);
 
 			if ($publish_up >= $publish_down)
@@ -904,22 +752,27 @@ class YireoModel extends YireoCommonModel
 			{
 				$data['created'] = $data['params']['created'];
 			}
+
 			if (!empty($data['params']['created_date']))
 			{
 				$data['created'] = $data['params']['created_date'];
 			}
+
 			if (!empty($data['params']['created_by']))
 			{
 				$data['created_by'] = $data['params']['created_by'];
 			}
+
 			if (!empty($data['params']['modified']))
 			{
 				$data['modified'] = $data['params']['modified'];
 			}
+
 			if (!empty($data['params']['modified_date']))
 			{
 				$data['modified'] = $data['params']['modified_date'];
 			}
+
 			if (!empty($data['params']['modified_by']))
 			{
 				$data['modified_by'] = $data['params']['modified_by'];
@@ -933,22 +786,27 @@ class YireoModel extends YireoCommonModel
 			{
 				unset($data['params']['created']);
 			}
+
 			if (isset($data['params']['created_date']))
 			{
 				unset($data['params']['created_date']);
 			}
+
 			if (isset($data['params']['created_by']))
 			{
 				unset($data['params']['created_by']);
 			}
+
 			if (isset($data['params']['modified']))
 			{
 				unset($data['params']['modified']);
 			}
+
 			if (isset($data['params']['modified_date']))
 			{
 				unset($data['params']['modified_date']);
 			}
+
 			if (isset($data['params']['modified_by']))
 			{
 				unset($data['params']['modified_by']);
@@ -968,38 +826,32 @@ class YireoModel extends YireoCommonModel
 		}
 
 		// Bind the fields to the table
-		if (!$this->_tbl->bind($data))
+		if (!$this->table->bind($data))
 		{
-			$this->setError($this->_db->getErrorMsg());
 			$this->saveTmpSession($data);
-
-			return false;
+			$this->throwDbException();
 		}
 
 		// Make sure the table is valid
-		if (!$this->_tbl->check())
+		if (!$this->table->check())
 		{
-			$this->setError($this->_tbl->getErrorMsg());
 			$this->saveTmpSession($data);
-
-			return false;
+			$this->throwDbException();
 		}
 
 		// Store the table to the database
-		if (!$this->_tbl->store())
+		if (!$this->table->store())
 		{
-			$this->setError($this->_db->getErrorMsg());
 			$this->saveTmpSession($data);
-
-			return false;
+			$this->throwDbException();
 		}
 
 		// Try to fetch the last ID from the table
-		$id = $this->_tbl->getLastInsertId();
+		$id = $this->table->getLastInsertId();
 
-		if ((!isset($this->_id) || !$this->_id > 0) && $id > 0)
+		if ((!isset($this->id) || !$this->id > 0) && $id > 0)
 		{
-			$this->_id = $id;
+			$this->id = $id;
 		}
 
 		return true;
@@ -1014,19 +866,36 @@ class YireoModel extends YireoCommonModel
 	 */
 	public function delete($cid = array())
 	{
-		if (count($cid) && !empty($this->_tbl_name) && !empty($this->_tbl_key))
+		if (!count($cid) > 0)
 		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-			$query = 'DELETE FROM ' . $this->_tbl_name . ' WHERE ' . $this->_tbl_key . ' IN ( ' . $cids . ' )';
-			$this->_db->setQuery($query);
+			return false;
+		}
 
-			if (!$this->_db->query())
-			{
-				$this->setError($this->_db->getErrorMsg());
+		$tableName = $this->table->getTableName();
+		$primaryKey = $this->table->getKeyName();
 
-				return false;
-			}
+		if (empty($tableName))
+		{
+			throw new RuntimeException(JText::_('LIB_YIREO_MODEL_ITEM_NO_TABLE_NAME'));
+		}
+
+		if (empty($primaryKey))
+		{
+			throw new RuntimeException(JText::_('LIB_YIREO_MODEL_ITEM_NO_TABLE_KEY'));
+		}
+
+		\Joomla\Utilities\ArrayHelper::toInteger($cid);
+		$cids  = implode(',', $cid);
+
+		$query = $this->_db->getQuery(true);
+		$query->delete($this->_db->quoteName($tableName));
+		$query->where($this->_db->quoteName($primaryKey) . ' IN (' . $cids . ')');
+
+		$this->_db->setQuery($query);
+
+		if (!$this->_db->execute())
+		{
+			$this->throwDbException();
 		}
 
 		return true;
@@ -1044,7 +913,7 @@ class YireoModel extends YireoCommonModel
 	{
 		if (count($cid))
 		{
-			$return = $this->_tbl->publish($cid, $publish, $this->user->get('id'));
+			$return = $this->table->publish($cid, $publish, $this->user->get('id'));
 
 			return $return;
 		}
@@ -1063,27 +932,23 @@ class YireoModel extends YireoCommonModel
 	 */
 	public function move($direction, $field_name = null, $field_id = null)
 	{
-		if (!$this->_tbl->load($this->_id))
+		if (!$this->table->load($this->id))
 		{
-			$this->setError($this->_db->getErrorMsg());
-
-			return false;
+			$this->throwDbException();
 		}
 
 		if (!empty($field_name) && !empty($field_id))
 		{
-			$rt = $this->_tbl->move($direction, ' ' . $field_name . ' = ' . $field_id);
+			$rt = $this->table->move($direction, ' ' . $field_name . ' = ' . $field_id);
 		}
 		else
 		{
-			$rt = $this->_tbl->move($direction);
+			$rt = $this->table->move($direction);
 		}
 
 		if ($rt == false)
 		{
-			$this->setError($this->_db->getErrorMsg());
-
-			return false;
+			$this->throwDbException();
 		}
 
 		return true;
@@ -1105,33 +970,31 @@ class YireoModel extends YireoCommonModel
 		for ($i = 0; $i < count($cid); $i++)
 		{
 			// Load the table
-			$this->_tbl->load((int) $cid[$i]);
+			$this->table->load((int) $cid[$i]);
 
 			// Track extra fields
-			if ($this->_tbl->hasField('category_id'))
+			if ($this->table->hasField('category_id'))
 			{
-				$groupings['category_id'] = $this->_tbl->category_id;
+				$groupings['category_id'] = $this->table->category_id;
 			}
 			else
 			{
-				if ($this->_tbl->hasField('parent_id'))
+				if ($this->table->hasField('parent_id'))
 				{
-					$groupings['parent_id'] = $this->_tbl->parent_id;
+					$groupings['parent_id'] = $this->table->parent_id;
 				}
 			}
 
 			// Save the ordering
-			$ordering = $this->_tbl->getDefaultOrderBy();
+			$ordering = $this->table->getDefaultOrderBy();
 
-			if ($this->_tbl->$ordering != $order[$i])
+			if ($this->table->$ordering != $order[$i])
 			{
-				$this->_tbl->$ordering = $order[$i];
+				$this->table->$ordering = $order[$i];
 
-				if (!$this->_tbl->store())
+				if (!$this->table->store())
 				{
-					$this->setError($this->_db->getErrorMsg());
-
-					return false;
+					$this->throwDbException();
 				}
 			}
 		}
@@ -1141,7 +1004,7 @@ class YireoModel extends YireoCommonModel
 
 		foreach ($groupings as $fieldName => $group)
 		{
-			$this->_tbl->reorder($fieldName . ' = ' . (int) $group);
+			$this->table->reorder($fieldName . ' = ' . (int) $group);
 		}
 
 		return true;
@@ -1154,9 +1017,9 @@ class YireoModel extends YireoCommonModel
 	 */
 	public function hit()
 	{
-		if ($this->_id)
+		if ($this->id)
 		{
-			$this->_tbl->hit($this->_id);
+			$this->table->hit($this->id);
 
 			return true;
 		}
@@ -1186,7 +1049,7 @@ class YireoModel extends YireoCommonModel
 		}
 
 		$value = ($value == 1) ? 0 : 1;
-		$query = 'UPDATE `' . $this->_tbl_name . '` SET `' . $name . '`=' . $value . ' WHERE `' . $this->_tbl_key . '`=' . (int) $id;
+		$query = 'UPDATE `' . $this->table->getTableName() . '` SET `' . $name . '`=' . $value . ' WHERE `' . $this->table->getKeyName() . '`=' . (int) $id;
 		$this->_db->setQuery($query);
 		$this->_db->execute();
 
@@ -1216,10 +1079,11 @@ class YireoModel extends YireoCommonModel
 
 		// Get the LIMIT segments for the query
 		$limitString = null;
-		if ($this->_limit_query == true)
+
+		if ($this->getConfig('limit_query') == true)
 		{
 			$limitstart = $this->getState('limitstart');
-			$limit = $this->getState('limit');
+			$limit      = $this->getState('limit');
 
 			if (!(empty($limit) && empty($limitStart)))
 			{
@@ -1230,7 +1094,6 @@ class YireoModel extends YireoCommonModel
 		// Build the default query if not set
 		if (empty($query))
 		{
-
 			// Skip certain fields in frontend
 			$skipFrontendFields = array(
 				'locked',
@@ -1238,10 +1101,11 @@ class YireoModel extends YireoCommonModel
 				'published_up',
 				'published_down',
 				'checked_out',
-				'checked_out_time');
+				'checked_out_time'
+			);
 
 			// Build the fields-string to avoid a *
-			$fields = $this->_tbl->getDatabaseFields();
+			$fields        = $this->table->getDatabaseFields();
 			$fieldsStrings = array();
 
 			foreach ($fields as $field)
@@ -1266,7 +1130,7 @@ class YireoModel extends YireoCommonModel
 			$fieldsString = implode(',', $fieldsStrings);
 
 			// Frontend or backend query
-			if ($this->_checkout == true && $this->app->isAdmin())
+			if ($this->allowCheckout() == true && $this->app->isAdmin())
 			{
 				$query = "SELECT " . $fieldsString . ", `editor`.`name` AS `editor` FROM `{table}` AS `{tableAlias}`\n";
 				$query .= " LEFT JOIN `#__users` AS `editor` ON `{tableAlias}`.`checked_out` = `editor`.`id`\n";
@@ -1281,21 +1145,21 @@ class YireoModel extends YireoCommonModel
 		if (strstr($query, '{access}'))
 		{
 			$query = str_replace('{access}', '`viewlevel`.`title` AS `accesslevel`', $query);
-			$query .= " LEFT JOIN `#__viewlevels` AS `viewlevel` ON `viewlevel`.`id`=`" . $this->_tbl_alias . "`.`access`\n";
+			$query .= " LEFT JOIN `#__viewlevels` AS `viewlevel` ON `viewlevel`.`id`=`" . $this->getConfig('table_alias') . "`.`access`\n";
 		}
 
 		// Add-in editor-details
 		if (strstr($query, '{editor}'))
 		{
 			$query = str_replace('{editor}', '`user`.`name` AS `editor`', $query);
-			$query .= " LEFT JOIN `#__users` AS `user` ON `user`.`id`=`" . $this->_tbl_alias . "`.`checked_out`\n";
+			$query .= " LEFT JOIN `#__users` AS `user` ON `user`.`id`=`" . $this->getConfig('table_alias') . "`.`checked_out`\n";
 		}
 
 		// Return the query including WHERE and ORDER BY and LIMIT
 		$query = $query . $extra . $where . $groupby . $orderby . $limitString;
-		$query = str_replace('{table}', $this->_tbl_name, $query);
-		$query = str_replace('{tableAlias}', $this->_tbl_alias, $query);
-		$query = str_replace('{primary}', $this->_tbl_key, $query);
+		$query = str_replace('{table}', $this->table->getTableName(), $query);
+		$query = str_replace('{tableAlias}', $this->getConfig('table_alias'), $query);
+		$query = str_replace('{primary}', $this->table->getKeyName(), $query);
 
 		return $query;
 	}
@@ -1370,7 +1234,7 @@ class YireoModel extends YireoCommonModel
 		// Automatically add the WHERE-statement for a single ID-based query
 		if ($this->isSingular())
 		{
-			$this->addWhere('`{tableAlias}`.`{primary}`=' . (int) $this->_id);
+			$this->addWhere('`{tableAlias}`.`{primary}`=' . (int) $this->id);
 		}
 
 		// Automatically add a WHERE-statement if the state-filter is used
@@ -1378,57 +1242,59 @@ class YireoModel extends YireoCommonModel
 
 		if ($state == 'U' || $state == 'P')
 		{
-			$state = ($state == 'U') ? 0 : 1;
-			$stateField = $this->_tbl->getStateField();
+			$state      = ($state == 'U') ? 0 : 1;
+			$stateField = $this->table->getStateField();
 
 			if (!empty($stateField))
 			{
-				$this->addWhere('`' . $this->_tbl_alias . '`.`' . $stateField . '` = ' . $state);
+				$this->addWhere($this->db->quoteName($this->getConfig('table_alias')) . '.`' . $stateField . '` = ' . $state);
 			}
 		}
 
 		// Automatically add a WHERE-statement if only published items should appear on the frontend
 		if ($this->app->isSite())
 		{
-			$stateField = $this->_tbl->getStateField();
+			$stateField = $this->table->getStateField();
 
 			if (!empty($stateField))
 			{
-				$this->addWhere($this->_tbl_alias . '.' . $stateField . ' = 1');
+				$this->addWhere($this->getConfig('table_alias') . '.' . $stateField . ' = 1');
 			}
 		}
 
 		// Automatically add a WHERE-statement if the search-filter is used
-		$search = $this->getFilter('search');
+		$search       = $this->getFilter('search');
+		$searchFields = $this->getConfig('search_fields');
 
-		if (!empty($this->search) && !empty($search))
+		if (!empty($searchFields) && !empty($search))
 		{
 			$where_search = array();
 
-			foreach ($this->search as $column)
+			foreach ($searchFields as $searchField)
 			{
-				if (strstr($column, '.') == false && strstr($column, '`') == false)
+				if (strstr($searchField, '.') == false && strstr($searchField, '`') == false)
 				{
-					$column = "`" . $column . "`";
+					$searchField = $this->db->quoteName($searchField);
 				}
 
-				if (strstr($column, '.') == false)
+				if (strstr($searchField, '.') == false)
 				{
-					$column = "`" . $this->_tbl_alias . "`." . $column;
+					$searchField = $this->db->quoteName($this->getConfig('table_alias')) . "." . $searchField;
 				}
 
-				$where_search[] = "$column LIKE '%$search%'";
+				$where_search[] = "$searchField LIKE " . $this->db->quote("%$search%");
 			}
 		}
 
 		if (!empty($where_search))
 		{
-			$this->_where[] = '(' . implode(' OR ', $where_search) . ')';
+			$this->addWhere('(' . implode(' OR ', $where_search) . ')');
+			//$this->where[] = '(' . implode(' OR ', $where_search) . ')';
 		}
 
-		if (count($this->_where))
+		if (count($this->where))
 		{
-			return ' WHERE ' . implode(' AND ', $this->_where) . "\n";
+			return ' WHERE ' . implode(' AND ', $this->where) . "\n";
 		}
 
 		return '';
@@ -1453,6 +1319,8 @@ class YireoModel extends YireoCommonModel
 	 * Method to add a new ORDER BY argument
 	 *
 	 * @param string $orderby
+	 *
+	 * @return $this
 	 */
 	public function addOrderby($orderby = null)
 	{
@@ -1460,12 +1328,12 @@ class YireoModel extends YireoCommonModel
 
 		if (empty($orderby))
 		{
-			return;
+			return $this;
 		}
 
 		if ($orderby == '{tableAlias}.')
 		{
-			return;
+			return $this;
 		}
 
 		if (is_string($orderby) && !isset($this->_orderby[$orderby]))
@@ -1482,12 +1350,16 @@ class YireoModel extends YireoCommonModel
 
 			$this->_orderby[] = $orderby;
 		}
+
+		return $this;
 	}
 
 	/**
 	 * Method to add a new GROUP BY argument
 	 *
 	 * @param string $groupby
+	 *
+	 * @return $this
 	 */
 	public function addGroupby($groupby = null)
 	{
@@ -1495,12 +1367,12 @@ class YireoModel extends YireoCommonModel
 
 		if (empty($groupby))
 		{
-			return;
+			return $this;
 		}
 
 		if ($groupby == '{tableAlias}.')
 		{
-			return;
+			return $this;
 		}
 
 		if (is_string($groupby) && !isset($this->_groupby[$groupby]))
@@ -1512,6 +1384,8 @@ class YireoModel extends YireoCommonModel
 
 			$this->_groupby[] = $groupby;
 		}
+
+		return $this;
 	}
 
 	/**
@@ -1519,12 +1393,14 @@ class YireoModel extends YireoCommonModel
 	 *
 	 * @param mixed  $where WHERE statement in the form of an array ($name, $value) or string
 	 * @param string $type  Type of WHERE statement. Either "is" or "like".
+	 *
+	 * @return $this
 	 */
 	public function addWhere($where, $type = 'is')
 	{
-		if ($this->_allow_filter == false)
+		if ($this->getConfig('allow_filter', true) == false)
 		{
-			return;
+			return $this;
 		}
 
 		if (is_array($where))
@@ -1539,10 +1415,12 @@ class YireoModel extends YireoCommonModel
 			}
 		}
 
-		if (is_string($where) && !in_array($where, $this->_where))
+		if (is_string($where) && !in_array($where, $this->where))
 		{
-			$this->_where[] = $where;
+			$this->where[] = $where;
 		}
+
+		return $this;
 	}
 
 	/**
@@ -1559,38 +1437,27 @@ class YireoModel extends YireoCommonModel
 	}
 
 	/**
-	 * Method to get the current primary key
-	 *
-	 * @return string
-	 */
-	public function getPrimaryKey()
-	{
-		return $this->_tbl_key;
-	}
-
-	/**
 	 * Method to get the ordering query
 	 *
 	 * @return string
 	 */
 	public function getOrderingQuery()
 	{
-		if ($this->_orderby_default == 'ordering')
+		if (!in_array($this->_orderby_default, array('ordering', 'lft')))
 		{
-			$query = 'SELECT `ordering` AS `value`, `' . $this->_orderby_title . '` AS `text`' . ' FROM `' . $this->_tbl_name . '`' . ' ORDER BY `ordering`';
-
-			return $query;
-
+			return false;
 		}
 
-		if ($this->_orderby_default == 'lft')
-		{
-			$query = 'SELECT `lft` AS `value`, `' . $this->_orderby_title . '` AS `text`' . ' FROM `' . $this->_tbl_name . '`' . ' ORDER BY `lft`';
+		/** @var JDatabaseDriver $db */
+		$db = $this->db;
 
-			return $query;
-		}
+		$query = $db->getQuery(true);
+		$query->select($db->quoteName($this->_orderby_default, 'value'));
+		$query->select($db->quoteName($this->_orderby_title, 'text'));
+		$query->from($db->quoteName($this->table->getTableName()));
+		$query->order($db->quoteName($this->_orderby_default));
 
-		return null;
+		return $query;
 	}
 
 	/**
@@ -1601,14 +1468,15 @@ class YireoModel extends YireoCommonModel
 	protected function getEmptyFields()
 	{
 		$data = array(
-			'published' => 1,
-			'publish_up' => null,
+			'published'    => 1,
+			'publish_up'   => null,
 			'publish_down' => null,
-			'state' => 1,
-			'access' => 1,
-			'ordering' => 0,
-			'lft' => 0,
-			'rgt' => 0,);
+			'state'        => 1,
+			'access'       => 1,
+			'ordering'     => 0,
+			'lft'          => 0,
+			'rgt'          => 0,
+		);
 
 		return $data;
 	}
@@ -1624,21 +1492,21 @@ class YireoModel extends YireoCommonModel
 		$data = $this->getEmptyFields();
 
 		// Lets load the data if it doesn't already exist
-		if (empty($this->_data))
+		if (empty($this->data))
 		{
 
 			if ($this->isPlural())
 			{
-				$this->_data = array();
+				$this->data = array();
 
 				return true;
 			}
 
-			$this->_data = (object) $this->_tbl->getProperties();
+			$this->data = (object) $this->table->getProperties();
 
 			foreach ($data as $name => $value)
 			{
-				$this->_data->$name = $value;
+				$this->data->$name = $value;
 			}
 
 			return true;
@@ -1659,10 +1527,10 @@ class YireoModel extends YireoCommonModel
 		// Check the permissions for this edit.state action
 		if ($this->getId() > 0)
 		{
-			return $this->user->authorise('core.edit.state', $this->_option . '.' . $this->_entity . '.' . (int) $this->getId());
+			return $this->user->authorise('core.edit.state', $this->getConfig('option') . '.' . $this->getConfig('table_alias') . '.' . (int) $this->getId());
 		}
 
-		return $this->user->authorise('core.edit.state', $this->_option);
+		return $this->user->authorise('core.edit.state', $this->getConfig('option'));
 	}
 
 	/**
@@ -1672,12 +1540,14 @@ class YireoModel extends YireoCommonModel
 	 */
 	public function isSingular()
 	{
-		if (isset($this->single) && (bool) $this->single == true)
+		$className = get_class($this);
+
+		if (preg_match('/s$/', $className))
 		{
-			return true;
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -1696,19 +1566,6 @@ class YireoModel extends YireoCommonModel
 	}
 
 	/**
-	 * Method to override the parameters
-	 *
-	 * @param mixed
-	 */
-	public function setParams($params = null)
-	{
-		if (!empty($params))
-		{
-			$this->params = $params;
-		}
-	}
-
-	/**
 	 * Method to get the default ORDER BY value
 	 *
 	 * @return string
@@ -1719,70 +1576,17 @@ class YireoModel extends YireoCommonModel
 	}
 
 	/**
-	 * Method to get a debug-message of the latest query
-	 *
-	 * @return string
-	 */
-	public function getDbDebug()
-	{
-		return '<pre>' . str_replace('#__', $this->_db->getPrefix(), $this->_db->getQuery()) . '</pre>';
-	}
-
-	/**
-	 * Method to temporarily store an object in the current session
-	 *
-	 * @param array $data
-	 */
-	public function saveTmpSession($data)
-	{
-		$session = JFactory::getSession();
-		$session->set($this->_option_id, $data);
-	}
-
-	/**
-	 * Method to temporarily store an object in the current session
-	 */
-	public function loadTmpSession()
-	{
-		if ($this->isSingular())
-		{
-			$session = JFactory::getSession();
-			$data = $session->get($this->_option_id);
-
-			if (!empty($data))
-			{
-				foreach ($data as $name => $value)
-				{
-					if (!empty($value))
-					{
-						$this->_data->$name = $value;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Method to temporarily store an object in the current session
-	 */
-	public function resetTmpSession()
-	{
-		$session = JFactory::getSession();
-		$session->clear($this->_option_id);
-	}
-
-	/**
 	 * Method to reset all filters
 	 *
 	 * @return string
 	 */
 	public function resetFilters()
 	{
-		$this->search = null;
-		$this->_where = array();
+		$this->search   = null;
+		$this->where    = array();
 		$this->_orderby = array();
-		$this->setState('limitstart', 0);
-		$this->setState('limit', 0);
+
+		$this->resetLimits();
 	}
 
 	/**
@@ -1792,109 +1596,6 @@ class YireoModel extends YireoCommonModel
 	 */
 	public function hasErrors()
 	{
-		$errors = $this->getErrors();
-
-		if (!empty($errors))
-		{
-			return true;
-		}
-
 		return false;
-	}
-
-	/**
-	 * Method to set whether filtering is allowed
-	 *
-	 * @param boolean
-	 */
-	public function setAllowFilter($bool)
-	{
-		$this->_allow_filter = $bool;
-	}
-
-	/**
-	 * Method to set whether the query should use LIMIT or not
-	 *
-	 * @param boolean
-	 */
-	public function setLimitQuery($bool)
-	{
-		$this->_limit_query = $bool;
-	}
-
-	/**
-	 * Method to fetch database-results
-	 *
-	 * @param string $query
-	 * @param string $type : object|objectList|result
-	 *
-	 * @return mixed
-	 */
-	public function getDbResult($query, $type = 'object')
-	{
-		if ($this->_cache == true)
-		{
-			$cache = JFactory::getCache('lib_yireo_model');
-			$rs = $cache->call(array($this, '_getDbResult'), $query, $type);
-		}
-		else
-		{
-			$rs = $this->_getDbResult($query, $type);
-		}
-
-		return $rs;
-	}
-
-	/**
-	 * Method to fetch database-results
-	 *
-	 * @param string $query
-	 * @param string $type : object|objectList|result
-	 *
-	 * @return mixed
-	 */
-	public function _getDbResult($query, $type = 'object')
-	{
-		// Set the query in the database-object
-		$this->_db->setQuery($query);
-
-		// Print the query if debugging is enabled
-		if (isset($this->_debug) && $this->_debug == true)
-		{
-			JError::raiseNotice('Query', $this->getDbDebug());
-		}
-
-		// Fetch the database-result
-		if ($type == 'objectList')
-		{
-			$rs = $this->_db->loadObjectList();
-		}
-		elseif ($type == 'result')
-		{
-			$rs = $this->_db->loadResult();
-		}
-		else
-		{
-			$rs = $this->_db->loadObject();
-		}
-
-		// Return the result
-		return $rs;
-	}
-
-	/**
-	 * Method to return the meta-data of this model
-	 *
-	 * @access     protected
-	 * @subpackage Yireo
-	 *
-	 * @param null
-	 *
-	 * @return array
-	 */
-	protected function getMetadata()
-	{
-		return array(
-			'table' => $this->_entity,);
 	}
 }

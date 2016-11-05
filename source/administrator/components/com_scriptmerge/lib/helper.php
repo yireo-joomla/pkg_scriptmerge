@@ -77,7 +77,7 @@ class YireoHelper
 		echo '<input type="hidden" name="option" value="' . JFactory::getApplication()->input->getCmd('option') . '" />';
 		echo '<input type="hidden" name="cid[]" value="' . $id . '" />';
 		echo '<input type="hidden" name="task" value="" />';
-		echo JHTML::_('form.token');
+		echo JHtml::_('form.token');
 	}
 
 	/*
@@ -241,11 +241,16 @@ class YireoHelper
 	 *
 	 * @param mixed $params
 	 * @param string $file
-	 * @return JParameter|JRegistry
+	 * @return \Joomla\Registry\Registry
 	 */
 	static public function toRegistry($params = null, $file = null)
 	{
-		if ($params instanceof JParameter || $params instanceof JRegistry)
+		if (class_exists('JParameter') && $params instanceof JParameter)
+		{
+			return $params;
+		}
+
+		if (class_exists('JRegistry') && $params instanceof JRegistry)
 		{
 			return $params;
 		}
@@ -254,9 +259,8 @@ class YireoHelper
 		{
 			$params = trim($params);
 		}
-
-		jimport('joomla.registry.registry');
-		$registry = new JRegistry;
+		
+		$registry = new \Joomla\Registry\Registry;
 
 		if (!empty($params) && is_string($params))
 		{
@@ -314,28 +318,7 @@ class YireoHelper
 	 */
 	static public function bootstrap()
 	{
-		if (self::isJoomla25())
-		{
-			// Check if bootstrap is loaded already
-			$application = JFactory::getApplication();
-
-			if (method_exists($application, 'set'))
-			{
-				$application->set('bootstrap', true);
-			}
-
-			$option = JFactory::getApplication()->input->getCmd('option');
-			$document = JFactory::getDocument();
-			$document->addStyleSheet('//netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css');
-			$document->addStyleSheet(JURI::root() . 'media/' . $option . '/css/backend-bootstrap-j25.css');
-			$document->addScript('//netdna.bootstrapcdn.com/bootstrap/2.3.2/js/bootstrap.min.js');
-
-		}
-		else
-		{
-			JHtml::_('bootstrap.framework');
-		}
-
+		JHtml::_('bootstrap.framework');
 		self::jquery();
 	}
 
@@ -377,11 +360,8 @@ class YireoHelper
 			return;
 		}
 
-		// Load jQuery using the framework (Joomla! 3.0 and higher)
-		if (YireoHelper::isJoomla25() == false)
-		{
-			return JHtml::_('jquery.framework');
-		}
+		// Load jQuery using the framework
+		return JHtml::_('jquery.framework');
 
 		// Check if jQuery is loaded already
 		$application = JFactory::getApplication();

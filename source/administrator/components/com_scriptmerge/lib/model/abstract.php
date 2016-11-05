@@ -25,6 +25,11 @@ require_once dirname(dirname(__FILE__)) . '/loader.php';
 class YireoAbstractModel extends JModelLegacy
 {
 	/**
+	 * Trait to implement ID behaviour
+	 */
+	use YireoModelTraitConfigurable;
+	
+	/**
 	 * @var JApplicationCms
 	 */
 	protected $app;
@@ -48,25 +53,69 @@ class YireoAbstractModel extends JModelLegacy
 
 	/**
 	 * @var JInput
+	 * @deprecated Use $this->input instead
 	 */
 	protected $_input;
 
 	/**
 	 * Constructor
 	 *
+	 * @param array $config
+	 *
 	 * @return mixed
 	 */
-	public function __construct()
+	public function __construct($config = array())
 	{
-		// Useful variables
-		$this->app = JFactory::getApplication();
-		$this->input = $this->app->input;
+		$rt = parent::__construct($config);
 
-		// Deprecated variables
+		$this->config = $config;
+		$this->app    = JFactory::getApplication();
+		$this->input  = $this->app->input;
+
+		$this->handleAbstractDeprecated();
+
+		return $rt;
+	}
+
+	/**
+	 * Handle deprecated variables
+	 */
+	protected function handleAbstractDeprecated()
+	{
 		$this->application = $this->app;
-		$this->_input = $this->input;
-		$this->jinput = $this->input;
+		$this->_input      = $this->input;
+		$this->jinput      = $this->input;
+	}
 
-		return parent::__construct();
+	/**
+	 * @return JApplicationCms
+	 */
+	public function getApp()
+	{
+		return $this->app;
+	}
+
+	/**
+	 * @param JApplicationCms $app
+	 */
+	public function setApp($app)
+	{
+		$this->app = $app;
+	}
+
+	/**
+	 * @return JInput
+	 */
+	public function getInput()
+	{
+		return $this->input;
+	}
+
+	/**
+	 * @param JInput $input
+	 */
+	public function setInput($input)
+	{
+		$this->input = $input;
 	}
 }
