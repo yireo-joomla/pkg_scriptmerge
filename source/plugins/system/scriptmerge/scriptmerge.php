@@ -309,13 +309,13 @@ class PlgSystemScriptMerge extends JPlugin
 
 				if (stripos($matches[0][$index], 'media="print"'))
 				{
-                    $this->addLinkHeader($match);
+                    $this->addLinkHeader($match, 'css');
 					continue;
 				}
 
 				if (preg_match('/\.php\?(.*)/', $match))
 				{
-                    $this->addLinkHeader($match);
+                    $this->addLinkHeader($match, 'css');
 					continue;
 				}
 
@@ -325,7 +325,7 @@ class PlgSystemScriptMerge extends JPlugin
 
 				if (preg_match('/^(?:https?:)?\/\//', $match))
 				{
-                    $this->addLinkHeader($match);
+                    $this->addLinkHeader($match, 'css');
 					continue;
 				}
 
@@ -353,7 +353,7 @@ class PlgSystemScriptMerge extends JPlugin
 
 					if ($hasMatch == true)
 					{
-                        $this->addLinkHeader($match);
+                        $this->addLinkHeader($match, 'css');
 						continue;
 					}
 				}
@@ -432,14 +432,14 @@ class PlgSystemScriptMerge extends JPlugin
 				{
 					if (preg_match('/\.(pack|min)\.js/', $match))
 					{
-                        $this->addLinkHeader($match);
+                        $this->addLinkHeader($match, 'js');
 						continue;
 					}
 				}
 
 				if (preg_match('/\.php\?(.*)/', $match))
 				{
-                    $this->addLinkHeader($hasMatch);
+                    $this->addLinkHeader($hasMatch, 'js');
 					continue;
 				}
 
@@ -464,7 +464,7 @@ class PlgSystemScriptMerge extends JPlugin
 
 					if ($doExclude == true)
 					{
-                        $this->addLinkHeader($match);
+                        $this->addLinkHeader($match, 'js');
 						continue;
 					}
 				}
@@ -472,7 +472,7 @@ class PlgSystemScriptMerge extends JPlugin
 				// Only try to match local JS
 				if (preg_match('/^(?:https?:)?\/\//', $match))
 				{
-                    $this->addLinkHeader($match);
+                    $this->addLinkHeader($match, 'js');
 					continue;
 				}
 
@@ -583,14 +583,14 @@ class PlgSystemScriptMerge extends JPlugin
 
 				if ($type == 'css')
 				{
-                    $this->addLinkHeader($url);
+                    $this->addLinkHeader($url, 'css');
 					$tag = '<link rel="stylesheet" href="' . $url . '" type="text/css" />';
 					$tag .= $this->getIncludeCss();
 					$tag_position = $this->params->get('css_position');
 				}
 				else
 				{
-                    $this->addLinkHeader($url);
+                    $this->addLinkHeader($url, 'js');
 					$async = ($this->params->get('async_merged', 0) == 1) ? ' async' : '';
 					$tag = '<script src="' . $url . '"' . $async . ' type="text/javascript"></script>';
 					$tag_position = $this->params->get('js_position');
@@ -670,9 +670,26 @@ class PlgSystemScriptMerge extends JPlugin
 		return $url;
 	}
 
-    private function addLinkHeader($link)
+    private function addLinkHeader($link, $type = 'css')
     {
-        header('Link: <'.$link.'>; rel=preload', false);
+        if (!preg_match('/^(http|https):\/\//', $link) && !preg_match('/^\/\//', $link))
+        {
+            $link = JUri::base() . $link;
+        }
+
+        $extra = '';
+
+        if ($type == 'css')
+        {
+            $extra .= ' as=style;';
+        }
+    
+        if ($type == 'js')
+        {
+            $extra .= ' as=script;';
+        }
+    
+        header('Link: <'.$link.'>; rel=preload;' . $extra, false);
     }
 
 	/**
