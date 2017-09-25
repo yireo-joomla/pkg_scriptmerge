@@ -674,7 +674,14 @@ class PlgSystemScriptMerge extends JPlugin
     {
         if (!preg_match('/^(http|https):\/\//', $link) && !preg_match('/^\/\//', $link))
         {
-            $link = JUri::base() . $link;
+			if ($link[0] === '/')
+			{
+				$link = rtrim( JURI::base(), '/') . $link;
+			}
+			else
+			{
+				$link = JUri::base() . $link;
+			}
         }
 
         $extra = '';
@@ -683,12 +690,12 @@ class PlgSystemScriptMerge extends JPlugin
         {
             $extra .= ' as=style;';
         }
-    
+
         if ($type == 'js')
         {
             $extra .= ' as=script;';
         }
-    
+
         header('Link: <'.$link.'>; rel=preload;' . $extra, false);
     }
 
