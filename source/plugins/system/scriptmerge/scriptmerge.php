@@ -696,7 +696,7 @@ class PlgSystemScriptMerge extends JPlugin
             $extra .= ' as=script;';
         }
 
-        header('Link: <'.$link.'>; rel=preload;' . $extra, false);
+        header('Link: <'.htmlspecialchars_decode($link).'>; rel=preload;' . $extra, false);
     }
 
 	/**
