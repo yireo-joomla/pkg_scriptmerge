@@ -1,5 +1,7 @@
-ScriptMerge (pkg_scriptmerge)
-===============
+#ScriptMerge (pkg_scriptmerge)
+
+## DISCONTINUED
+**In the past, the company Yireo has focused on Joomla and developed numerous Joomla extensions - this extension being one of them. As of yet, we have stopped all our Joomla activity. This extension is dumped here on GitHub for sharing. However, we provide zero help and support on its usage.**
 
 The ScriptMerge plugin is a Joomla! System Plugin that merges all the CSS stylesheets and JavaScript files on your Joomla! page into one single file, which means that the browser only needs to download one single file - optimizing the bandwidth needed for your site.
 
