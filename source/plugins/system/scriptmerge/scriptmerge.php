@@ -476,7 +476,9 @@ class PlgSystemScriptMerge extends JPlugin
 					continue;
 				}
 
-				if (!preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
+				if (!preg_match('/\.js*?/', $match))
+				// not working on urls like k2: components/com_k2/js/k2.js?v2.6.9&sitepath=/
+				//if (!preg_match('/\.js(?:\?(?:\w+=)?(?:\w+|[0-9a-z\.\-]+))?$/', $match))
 				{
 					continue;
 				}
